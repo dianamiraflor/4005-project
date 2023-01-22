@@ -1,7 +1,7 @@
-import csv
 import os
 import pandas as pd
 
+# Run this script from main project directory
 
 master_workstation_df = pd.DataFrame()
 master_inspector_df = pd.DataFrame()
@@ -18,7 +18,6 @@ print(master_workstation_df.describe())
 # Get average service times for each inspector
 inspector_service_times = pd.read_csv(os.getcwd() + '\\data\\servinsp1.dat', header=None)
 inspector_service_times.columns = ['service_time']
-
 master_inspector_df['inspector1'] = inspector_service_times['service_time']
 
 for x in range(2,4):
