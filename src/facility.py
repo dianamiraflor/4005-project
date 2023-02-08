@@ -24,7 +24,7 @@ class Facility:
         self.c1w3 = simpy.Container(env, capacity = buffer_capacity)
         self.c3w3 = simpy.Container(env, capacity = buffer_capacity)
 
-# Implement blocking
+# TODO: Implement blocking
 def inspector_1(env, facility):
     while True:
         yield facility.c1.get(1)
@@ -46,7 +46,7 @@ def inspector_1(env, facility):
             yield facility.c1w3.put(1)
         
 
-# Implement blocking
+# TODO: Implement blocking
 def inspector_2(env, facility):
     while True:
         random_component = random.randint(2,3)
@@ -96,3 +96,22 @@ def workstation_3(env, facility):
 # TODO: Implement chosen buffer for inspector 1
 def get_chosen_buffer(c1w1, c1w2, c1w3):
     list = (c1w1, c1w2, c1w3)
+
+# ---------------------------------------------------------------------------------------
+if __name__ == '__main__':
+    SIMULATION_DURATION = int(input('Duration of simulation (ms): '))
+    NUN_COMPONENTS = int(input('Enter the number of components (default is 1000): ')) # This is related to the infinite amount of components
+
+    print(f'STARTING MANUFACTURING FACILITY SIMULATION')
+    print(f'----------------------------------')
+
+    env = simpy.Environment()
+    facility = Facility(env)
+
+    inspector_1_process = env.process(inspector_1(env, facility))
+    inspector_2_process = env.process(inspector_2(env, facility))
+    workstation_1_process = env.process(workstation_1(env, facility))
+    workstation_2_process = env.process(workstation_2(env, facility))
+    workstation_3_process = env.process(workstation_3(env, facility))
+
+    env.run(until = SIMULATION_DURATION)

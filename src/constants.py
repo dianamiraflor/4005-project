@@ -1,6 +1,6 @@
 import os
 
-data_directory = os.getcwd() + '\\data' # Might need to configure this for different os idk
+data_dir = os.chdir('.../') + '\\data' # TODO: Might need to change this 
 
 workstation_priority = {
     'w1' : 1,
