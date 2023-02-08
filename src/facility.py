@@ -24,14 +24,29 @@ class Facility:
         self.c1w3 = simpy.Container(env, capacity = buffer_capacity)
         self.c3w3 = simpy.Container(env, capacity = buffer_capacity)
 
-
+# Implement blocking
 def inspector_1(env, facility):
     while True:
         yield facility.c1.get(1)
         # Get the service time from the file
         service_time = st.get_random_i1_st()
         yield env.timeout(service_time)
+        
+        c1w1_level = facility.c1w1.level()
+        c1w2_level = facility.c1w2.level()
+        c1w3_level = facility.c1w2.level()
 
+        buffer = get_chosen_buffer(c1w1_level, c1w2_level, c1w3_level)
+
+        if buffer == 'c1w1':
+            yield facility.c1w1.put(1)
+        if buffer == 'c1w2':
+            yield facility.c1w2.put(1)
+        if buffer == 'c1w3':
+            yield facility.c1w3.put(1)
+        
+
+# Implement blocking
 def inspector_2(env, facility):
     while True:
         random_component = random.randint(2,3)
@@ -40,39 +55,44 @@ def inspector_2(env, facility):
             yield facility.c2.get(1)
             service_time = st.get_random_i2_2_st()
             yield env.timeout(service_time)
+            yield facility.c2w2.put(1)
         else:
             yield facility.c3.get(1)
             service_time = st.get_random_i2_3_st()
             yield env.timeout(service_time)
+            yield facility.c3w3.put(1)
 
 def workstation_1(env, facility):
     while True:
-        arrive_time = facility.env.now
+        arrive_time = env.now
         yield facility.c1w1.get(1)
-        start_time = facility.env.now
+        start_time = env.now
         service_time = st.get_random_w1_st
         yield env.timeout(service_time)
-        end_time = facility.env.now
-        
+        end_time = env.now
+
 def workstation_2(env, facility):
     while True:
-        arrive_time = facility.env.now
+        arrive_time = env.now
         c1_req = facility.c1w1.get(1)
         c2_req = facility.c2w1.get(1)
         yield c1_req & c2_req # Wait until c1 and c2 components are both available
-        start_time = facility.env.now
+        start_time = env.now
         service_time = st.get_random_w2_st
         yield env.timeout(service_time)
-        end_time = facility.env.now
+        end_time = env.now
 
 def workstation_3(env, facility):
     while True:
-        arrive_time = facility.env.now
+        arrive_time = env.now
         c1_req = facility.c1w3.get(1)
         c3_req = facility.c3w3.get(1)
         yield c1_req & c3_req # Wait until c1 and c2 components are both available
-        start_time = facility.env.now
+        start_time = env.now
         service_time = st.get_random_w3_st
         yield env.timeout(service_time)
-        end_time = facility.env.now
+        end_time = env.now
 
+# TODO: Implement chosen buffer for inspector 1
+def get_chosen_buffer(c1w1, c1w2, c1w3):
+    list = (c1w1, c1w2, c1w3)
