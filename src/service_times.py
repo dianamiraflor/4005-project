@@ -1,3 +1,9 @@
+"""
+service_times.py contains a class that outputs a random service time for the simulation. 
+
+Author: Diana Miraflor
+Carleton University
+"""
 import data_wrapper
 import random
 

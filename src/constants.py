@@ -1,4 +1,11 @@
-import os
+"""
+constants.py is a configurable file that allows you to change the simulation duration, 
+as well as the initial amount of components at the start of the simulation
+
+Author: Diana Miraflor
+Carleton University
+"""
+
 from pathlib import Path
 
 data_directory = Path("data/")
@@ -8,8 +15,8 @@ C1W2 = 'C1W2'
 C1W3 = 'C1W3'
 
 # ------------ Configurable
-SIMULATION_DURATION = 20000
-# NOTE: These need to change because there the products will need more component 1s
+SIMULATION_DURATION = 100000 
+# NOTE: To imitate infinite number of components - set to a high (very high) number.
 c1_initial = 500
 c2_initial = 500
 c3_initial = 500

@@ -1,12 +1,27 @@
+"""
+facility.py is the main module of the simulation. It contains an environment, Facilitiy and processes defined by generators.
+Such processes are the two inspectors and three workstations. 
+
+Running this module will begin the project's simulation.
+
+Author: Diana Miraflor
+Carleton University
+"""
+
 import simpy
 import service_times
 import random
-from constants import C1W1, C1W2, C1W3, buffer_capacity, c1_initial, c2_initial, c3_initial, c1_max, c2_max, c3_max, SIMULATION_DURATION
+from constants import SIMULATION_DURATION, C1W1, C1W2, C1W3, buffer_capacity, c1_initial, c2_initial, c3_initial, c1_max, c2_max, c3_max
 
 # Get all the service times of inspectors and workstations
 st = service_times.ServiceTimes()
 
 class Facility: 
+    """
+    A Facility class.
+    Contains the 5 buffers shared between the inspectors and workstations, as well as containers for inspectors to fetch
+    components from.
+    """
     def __init__(self, env):
 
         # Instantiate the containers for loading the components for inspectors
@@ -21,28 +36,34 @@ class Facility:
         self.c1w3 = simpy.Container(env, capacity = buffer_capacity)
         self.c3w3 = simpy.Container(env, capacity = buffer_capacity)
 
-# TODO: Implement blocking
 def inspector_1(env, facility):
+    """
+    Inspector 1 process.
+    This process will loop for the entirety of the simulation duration.
+
+    Inspector 1 will get components from container c1 and will perform inspection, 
+    and once finished will then place it in one of the workstation's component 1's (c1w1, c1w2, c1w3) containers
+    """
     while True:
         yield facility.c1.get(1)
         print("Inspector 1 has started inspecting component 1")
         # Get the service time from the file
         service_time = st.get_random_i1_st()
-        yield env.timeout(service_time)
+        yield env.timeout(service_time) 
 
         print("Inspector 1 service time: " + str(service_time) + " minutes")
         
-        # TODO: 
-        # Process will have to wait until there's an available slot in a buffer.
+        # TODO: Simulation does not simulate blocking for inspector 1 
         c1w1_level = facility.c1w1.level
         c1w2_level = facility.c1w2.level
         c1w3_level = facility.c1w3.level
 
-        # If they are all full 
-        # Block 
+        # Case 1: All buffers are at max capacity which will cause inspector 1 to block
         if c1w1_level == c1w2_level == c1w3_level == buffer_capacity:
             print("Inspector 1 has been blocked (all buffers are at max capacity) and is waiting for an available buffer")
             buffer = get_chosen_buffer_at_capacity(c1w1_level, c1w2_level, c1w3_level, facility)
+
+        # Case 2: All buffers are not at max capacity -> there is always an available buffer to place component 1 in
         else: 
             print("Inspector 1 is currently choosing the shortest buffer (queue) to place a component in")
             buffer = get_chosen_buffer(c1w1_level, c1w2_level, c1w3_level)
@@ -57,9 +78,14 @@ def inspector_1(env, facility):
             yield facility.c1w3.put(1)
             print("Inspector 1 has finished inspecting component 1 and has placed it in C1W3") 
         
-
-# TODO: Implement blocking
 def inspector_2(env, facility):
+    """
+    Inspector 2 process.
+    This process will loop for the entirety of the simulation duration.
+
+    Inspector 2 will get components from container c2 and c3. However, it will randomly choose a random container to pick from.
+    Once chosen, inspector 2 will perform inspection and place the component in its respective container (either c2w2 or c3w3).
+    """
     while True:
         random_component = random.randint(2,3)
 
@@ -81,6 +107,13 @@ def inspector_2(env, facility):
             print("Inspector 2 has finished inspecting component 3 and has placed it in C3W3")
 
 def workstation_1(env, facility):
+    """
+    Workstation 1 process.
+    This process will loop for the entirety of the simulation duration.
+
+    Workstation 1 has only one container it fetches components from, c1w1. 
+    Once component 1 is available in this container, it will then begin assembling product 1. 
+    """
     while True:
         print("Workstation 1 has begun assembling product 1")
         yield facility.c1w1.get(1)
@@ -90,6 +123,14 @@ def workstation_1(env, facility):
         print("Workstation 1 has finished assembling product 1")
 
 def workstation_2(env, facility):
+    """
+    Workstation 2 process.
+    This process will loop for the entirety of the simulation duration.
+
+    Workstation 2 has two containers: one for component 1 and one for component 2. 
+    It will wait until both components are available in the containers. 
+    Once available, it will begin assembling product 2.
+    """
     while True:
         c1_req = facility.c1w1.get(1)
         c2_req = facility.c2w2.get(1)
@@ -102,6 +143,14 @@ def workstation_2(env, facility):
         print("Workstation 2 has finished assembling product 2")
 
 def workstation_3(env, facility):
+    """
+    Workstation 3 process.
+    This process will loop for the entirety of the simulation duration.
+
+    Workstation 3 has two containers: one for component 1 and one for component 3. 
+    It will wait until both components are available in the containers. 
+    Once available, it will begin assembling product 3.
+    """
     while True:
         c1_req = facility.c1w3.get(1)
         c3_req = facility.c3w3.get(1)
@@ -114,6 +163,11 @@ def workstation_3(env, facility):
         print("Workstation 3 has finished assembling product 3")
 
 def get_chosen_buffer_at_capacity(facility):
+    """
+    A method that will make inspector 1 block when all of its buffers for component 1 are at full capacity.
+    Inspector 1 will then remain in a loop until a buffer has space.
+
+    """
     # If they are all full 
     # Block 
     free_c1w1 = False
@@ -137,6 +191,9 @@ def get_chosen_buffer_at_capacity(facility):
     return chosen_buffer
 
 def get_chosen_buffer(c1w1, c1w2, c1w3):
+    """
+    A method for inspector 1 to pick the buffer with the shortest queue. 
+    """
     chosen_buffer = C1W1
 
     # Case 1: If all the same
@@ -159,8 +216,10 @@ def get_chosen_buffer(c1w1, c1w2, c1w3):
 
 # ---------------------------------------------------------------------------------------
 if __name__ == '__main__':
-    # SIMULATION_DURATION = int(input('Duration of simulation (ms): '))
-    # NUN_COMPONENTS = int(input('Enter the number of components (default is 1000): ')) # This is related to the infinite amount of components
+    """
+    THE MAIN METHOD.
+    Run facility.py to start simulation.
+    """
 
     SIMULATION_DURATION = 20000
 

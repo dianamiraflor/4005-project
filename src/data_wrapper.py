@@ -1,3 +1,11 @@
+"""
+data_wrapper.py reads the service times data of the inspectors and workstations and adds them to an array.
+This is useful for picking a random service time for an inspector/workstation.
+
+Author: Diana Miraflor
+Carleton University
+"""
+
 from constants import data_directory
 
 def inspector1_1_st():

@@ -12,3 +12,5 @@ Change working directory to /src and run:
 ```
 python facility.py
 ```
+
+<span style="color:red"> NOTE: To change simulation configurations, locate to /src/constants.py.</span>
