@@ -1,7 +1,7 @@
 # SYSC 4005 Project
 
 ## RUN Instructions
-Have python installed first.
+Have python3 installed first.
 
 Install the dependencies from main project directory.
 ```
