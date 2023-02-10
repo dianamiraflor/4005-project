@@ -17,7 +17,7 @@ st = service_times.ServiceTimes()
 class Facility: 
     def __init__(self, env):
 
-        # Instantiate the containers for loading the products for inspectors
+        # Instantiate the containers for loading the components for inspectors
         self.c1 = simpy.Container(env, capacity = c1_max, init = c1_initial)
         self.c2 = simpy.Container(env, capacity = c2_max, init = c2_initial)
         self.c3 = simpy.Container(env, capacity = c3_max, init = c3_initial)
@@ -33,7 +33,7 @@ class Facility:
 def inspector_1(env, facility):
     while True:
         yield facility.c1.get(1)
-        print("Inspector 1 has started inspecting component product 1")
+        print("Inspector 1 has started inspecting component 1")
         # Get the service time from the file
         service_time = st.get_random_i1_st()
         yield env.timeout(service_time)
