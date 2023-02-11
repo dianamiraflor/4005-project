@@ -102,7 +102,7 @@ def inspector_2(env, facility):
             yield facility.c3.get(1)
             service_time = st.get_random_i2_3_st()
             yield env.timeout(service_time)
-            print("Inspector 3 service time on C3: " + str(service_time) + " minutes")
+            print("Inspector 2 service time on C3: " + str(service_time) + " minutes")
             yield facility.c3w3.put(1) # Will be blocked until there's space in this buffer
             print("Inspector 2 has finished inspecting component 3 and has placed it in C3W3")
 
@@ -115,8 +115,8 @@ def workstation_1(env, facility):
     Once component 1 is available in this container, it will then begin assembling product 1. 
     """
     while True:
-        print("Workstation 1 has begun assembling product 1")
         yield facility.c1w1.get(1)
+        print("Workstation 1 has begun assembling product 1")
         service_time = st.get_random_w1_st()
         yield env.timeout(service_time)
         print("Workstation 1 service time: " + str(service_time) + " minutes")
@@ -132,7 +132,7 @@ def workstation_2(env, facility):
     Once available, it will begin assembling product 2.
     """
     while True:
-        c1_req = facility.c1w1.get(1)
+        c1_req = facility.c1w2.get(1)
         c2_req = facility.c2w2.get(1)
         print("Workstation 2 is waiting for product 1 and 2...")
         yield c1_req & c2_req # Wait until c1 and c2 components are both available
@@ -154,7 +154,7 @@ def workstation_3(env, facility):
     while True:
         c1_req = facility.c1w3.get(1)
         c3_req = facility.c3w3.get(1)
-        print("Workstation 2 is waiting for product 1 and 3...")
+        print("Workstation 3 is waiting for product 1 and 3...")
         yield c1_req & c3_req # Wait until c1 and c3 components are both available
         print("Workstation 3 has started assembling product 3")
         service_time = st.get_random_w3_st()
@@ -168,17 +168,17 @@ def get_chosen_buffer_at_capacity(facility):
     Inspector 1 will then remain in a loop until a buffer has space.
 
     """
-    # If they are all full 
-    # Block 
     free_c1w1 = False
     free_c1w2 = False
     free_c1w3 = False
     chosen_buffer = C1W1
+
+    # Loop until a flag is set to true
     while (not free_c1w1) & (not free_c1w2) & (not free_c1w3):
         current_c1w1_level = facility.c1w1.level
         current_c1w2_level = facility.c1w2.level
         current_c1w3_level = facility.c1w3.level
-        # Wait until one is full
+        
         if current_c1w1_level < buffer_capacity:
             free_c1w1 = True
         if current_c1w2_level < buffer_capacity:
