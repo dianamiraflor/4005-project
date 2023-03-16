@@ -1,3 +1,7 @@
+"""
+MISC: Only used to find average service times of workstations + inspectors
+"""
+
 import os
 import pandas as pd
 
