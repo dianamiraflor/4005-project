@@ -168,17 +168,17 @@ def get_chosen_buffer_at_capacity(facility):
     Inspector 1 will then remain in a loop until a buffer has space.
 
     """
+    # If they are all full 
+    # Block 
     free_c1w1 = False
     free_c1w2 = False
     free_c1w3 = False
     chosen_buffer = C1W1
-
-    # Loop until a flag is set to true
     while (not free_c1w1) & (not free_c1w2) & (not free_c1w3):
         current_c1w1_level = facility.c1w1.level
         current_c1w2_level = facility.c1w2.level
         current_c1w3_level = facility.c1w3.level
-        
+        # Wait until one is full
         if current_c1w1_level < buffer_capacity:
             free_c1w1 = True
         if current_c1w2_level < buffer_capacity:
