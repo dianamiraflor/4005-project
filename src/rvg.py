@@ -24,9 +24,9 @@ def read_input_model_data():
     return
 
 if __name__ == "__main__":
-    exp_lam = 0
+    lam = 0 # Lambda for exp dist
     samples = 0
 
-    generate_random_variates(exp_lam, samples)
+    generate_random_variates(samples, lam)
 
 
