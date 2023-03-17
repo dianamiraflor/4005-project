@@ -12,5 +12,19 @@ Change working directory to /src and run:
 ```
 python facility.py
 ```
+To simulate the manufacturing facility.
 
 <span style="color:red"> NOTE: To change simulation configurations, locate to /src/constants.py.</span>
+
+
+Run:
+```
+python rng_tests.py
+```
+To perform uniform and autocorrelation tests on RNG.
+
+Run:
+```
+python rvg.py
+```
+To generate a sequence of random variates as an input for the model.

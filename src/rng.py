@@ -10,6 +10,7 @@ import pandas as pd
 import numpy as np
 import scipy.stats as stats
 import math
+from constants import num_samples
 
 
 def linear_congruential_generator(m: int, a: int, c: int, seed: int) -> Iterator[int]:
@@ -48,8 +49,7 @@ def rand_float_samples(n_samples: int, seed: int = 114121598):
     return sequence
 
 if __name__ == "__main__":
-    n = 300
-    rand_sequence = rand_float_samples(n)
+    rand_sequence = rand_float_samples(num_samples)
 
     file = open('random_numbers.txt', 'w')
     for r_num in rand_sequence:

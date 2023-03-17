@@ -1,3 +1,7 @@
+"""
+This module performs uniform and independence tests on the RNG that uses LCG (rng.py)
+"""
+
 from typing import Iterator
 from matplotlib import pyplot as plt
 from datetime import datetime
@@ -6,10 +10,17 @@ import numpy as np
 import scipy.stats as stats
 import math
 from rng import rand_float_samples
+from constants import num_samples, alpha, i, l
 
 def get_frequency_table(frequency, hist_bins, samples) -> pd.DataFrame :
     """
-    The distribution should be uniform 
+    Creates a frequency table to calculate the values of a chi-square test 
+    
+    param frequency: A list of frequencies of the intervals from the histogram
+    param hist_bins: A list of values used as the intervals
+    param samples: Number of samples
+
+    return uniform_df: A dataframe that consists of the values of a chi-square test
     """
     uniform_df = pd.DataFrame(columns=["interval","frequency", "expected_freq", "variance", "chi"])
 
@@ -35,10 +46,24 @@ def get_frequency_table(frequency, hist_bins, samples) -> pd.DataFrame :
     return uniform_df
 
 def calculate_chi_square(chi_table) -> float:
+    """
+    Calculates the chi-square from the given frequency table
+
+    param chi_table: A table that consists of values that help calculate the chi-square
+    return chi_square: A float value that sums the 'chi' column of the table
+    """
     chi_square = chi_table['chi'].sum()
     return chi_square
 
 def test_for_uniformity_chi(chi_square, alpha, interval_count):
+    """
+    Uses a chi-square test to test for uniformity of a sequence of random numbers
+
+    param chi_square: Calculated chi_square value
+    param alpha: Signifance level of the chi-square test
+    param interval_count: The number of bins
+    
+    """
     print("Uniformity Test")
     print("Null hypothesis: The nummbers are distributed uniformly on the interval [0,1]")
     
@@ -52,10 +77,17 @@ def test_for_uniformity_chi(chi_square, alpha, interval_count):
     print(conclusion)
  
 def test_for_independence(rho, std_dev, alpha):
+    """
+    Test for indepence of a sequence of random numbers
+
+    param rho: The mean
+    param std_dev: The standard deviation
+    param alpha: Signifance level of normal distribution
+    """
     print("Autocorrelation Test")
     print("Null hypothesis: The numbers are independent of each other")
 
-    z = -1 * (rho/std_dev)
+    z = -1 * (rho/std_dev) 
 
     print("Zo = " + str(z))
 
@@ -72,9 +104,21 @@ def test_for_independence(rho, std_dev, alpha):
     return
 
 def calculate_rho_and_std_dev(random_nums, start, lag, N):
+    """
+    Calculates rho and dev to test for independence
+
+    param random_nums: A sequence of random numbers
+    param start: Starting position (i)
+    param lag: Incremental value (l)
+    param N: The number of samples (the length of random_nums)
+
+    return rho: The mean
+    return std_dev: The std. deviation
+    """
     # M is the value such that i + (M + 1) * l <= N
     M = round(((N - start) / lag) - 1)
-    print(M)
+    
+    #print(M)
 
     sum = 0
     for i in range(0, M+1):
@@ -90,8 +134,10 @@ def calculate_rho_and_std_dev(random_nums, start, lag, N):
     return rho, std_dev
 
 if __name__ == "__main__":
-    n = 300
-    rand_sequence = rand_float_samples(n)
+    """
+    Run rng_tests.py to perform tests
+    """
+    rand_sequence = rand_float_samples(num_samples)
 
     file = open('random_numbers.txt', 'w')
     for r_num in rand_sequence:
@@ -101,9 +147,9 @@ if __name__ == "__main__":
 
     counts, bins, bars = plt.hist(rand_sequence, bins=17) # Bin Size = sqrt(sample_size)
 
-    freq_df = get_frequency_table(counts, bins, 300)
+    freq_df = get_frequency_table(counts, bins, num_samples)
     chi_square = calculate_chi_square(freq_df)
-    test_for_uniformity_chi(chi_square, 0.05, len(counts))
+    test_for_uniformity_chi(chi_square, alpha, len(counts))
 
-    rho, std_dev = calculate_rho_and_std_dev(rand_sequence, 5, 5, len(rand_sequence))
-    test_for_independence(rho, std_dev, 0.025)
+    rho, std_dev = calculate_rho_and_std_dev(rand_sequence, i, l, len(rand_sequence))
+    test_for_independence(rho, std_dev, (alpha/2))
