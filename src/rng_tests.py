@@ -10,7 +10,7 @@ import numpy as np
 import scipy.stats as stats
 import math
 from rng import rand_float_samples
-from constants import num_samples, alpha, i, l
+from constants import num_samples, alpha, i, l, bin_size
 
 def get_frequency_table(frequency, hist_bins, samples) -> pd.DataFrame :
     """
@@ -67,13 +67,12 @@ def test_for_uniformity_chi(chi_square, alpha, interval_count):
     print("Uniformity Test")
     print("Null hypothesis: The nummbers are distributed uniformly on the interval [0,1]")
     
-    print("Approach: The p-value approach to hypothesis testing in the decision rule")
-    p_value = 1 - stats.chi2.cdf(chi_square, interval_count - 1)
+    critical_value = stats.chi2.ppf(1-alpha, interval_count-1)
     conclusion = "Failed to reject the null hypothesis."
-    if p_value <= alpha:
+    if chi_square > critical_value:
         conclusion = "Null Hypothesis is rejected."
         
-    print("chisquare-score is:", chi_square, " and p value is:", p_value)
+    print("chisquare-score is:", chi_square, " and critical value is:", critical_value)
     print(conclusion)
  
 def test_for_independence(rho, std_dev, alpha):
@@ -99,9 +98,6 @@ def test_for_independence(rho, std_dev, alpha):
 
     print("z-score is:", z, " and z value is:", z_value)
     print(conclusion)
-
-
-    return
 
 def calculate_rho_and_std_dev(random_nums, start, lag, N):
     """
@@ -135,7 +131,7 @@ def calculate_rho_and_std_dev(random_nums, start, lag, N):
 
 if __name__ == "__main__":
     """
-    Run rng_tests.py to perform tests
+    Run this module to perform tests for RNG
     """
     rand_sequence = rand_float_samples(num_samples)
 
@@ -145,9 +141,10 @@ if __name__ == "__main__":
 
     file.close()
 
-    counts, bins, bars = plt.hist(rand_sequence, bins=17) # Bin Size = sqrt(sample_size)
-
+    counts, bins, bars = plt.hist(rand_sequence, bins=bin_size) # Bin Size = sqrt(sample_size)
+    plt.show()
     freq_df = get_frequency_table(counts, bins, num_samples)
+    print(freq_df)
     chi_square = calculate_chi_square(freq_df)
     test_for_uniformity_chi(chi_square, alpha, len(counts))
 

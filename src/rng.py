@@ -34,7 +34,6 @@ def rand_float_samples(n_samples: int, seed: int = 114121598):
     :param seed: the starting state of the LCG. It is used to initialize the pseudo-random number sequence
     :return: a list of length n_samples containing the generated pseudo-random numbers
     """
-    exp_31 = 2147483648
     exp_32 = 4294967296
     m: int = exp_32 # 2^32
     a: int = 741103597

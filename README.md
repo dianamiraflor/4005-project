@@ -16,7 +16,6 @@ To simulate the manufacturing facility.
 
 <span style="color:red"> NOTE: To change simulation configurations, locate to /src/constants.py.</span>
 
-
 Run:
 ```
 python rng_tests.py
