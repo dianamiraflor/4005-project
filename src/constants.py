@@ -23,4 +23,13 @@ c3_initial = 500
 c1_max = 1000
 c2_max = 1000
 c3_max = 1000
+
+
+#------------- RNG & RVG TEST Config
+num_samples = 300
+alpha = 0.05
+
+i = 5
+l = 5
+bin_size = 20
 # -------------
