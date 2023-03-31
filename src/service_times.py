@@ -4,35 +4,36 @@ service_times.py contains a class that outputs a random service time for the sim
 Author: Diana Miraflor
 Carleton University
 """
-import data_wrapper
+
 import random
+from constants import data_directory
 
 class ServiceTimes():
-    def __init__(self):
-        self.i1_st = data_wrapper.inspector1_1_st()
-        self.i2_2_st = data_wrapper.inspector2_2_st()
-        self.i2_3_st = data_wrapper.inspector2_3_st()
+	def __init__(self):
+		self.times={}
 
-        self.w1_st = data_wrapper.workstation1_st()
-        self.w2_st = data_wrapper.workstation2_st()
-        self.w3_st = data_wrapper.workstation3_st()
+		self.times["i1"]= self.file_reader("servinsp1.dat")
+		self.times["i22"]=self.file_reader("servinsp22.dat")
+		self.times["i23"]=self.file_reader("servinsp23.dat")
+		self.times["w1"]= self.file_reader("ws1.dat")
+		self.times["w2"]= self.file_reader("ws2.dat")
+		self.times["w3"]= self.file_reader("ws3.dat")
 
-    
-    def get_random_i1_st(self) -> float: 
-        return random.choice(self.i1_st)
-    
-    def get_random_i2_2_st(self) -> float:
-        return random.choice(self.i2_2_st)
+	def get_random(self, name) -> float:
+		"""
+		Takes in the name of the inspector/ workstation and returns a randomly selected service time
+		"""
+		return random.choice(self.times[name])
 
-    def get_random_i2_3_st(self) -> float:
-        return random.choice(self.i2_3_st)
+	def file_reader(self, fname):
+		"""
+		Takes in a filename and returns an array of the service times contained in the file
+		"""
+		st=[]
+		data=data_directory/fname
+		with open(data, 'r') as f:
+			for line in f.readlines():
+				st.append(float(line))
 
-    def get_random_w1_st(self) -> float:
-        return random.choice(self.w1_st)
-    
-    def get_random_w2_st(self) -> float:
-        return random.choice(self.w2_st)
-
-    def get_random_w3_st(self) -> float:
-        return random.choice(self.w3_st)
+		return st
 
