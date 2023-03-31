@@ -10,11 +10,15 @@ Carleton University
 
 import simpy
 import service_times
+import measurements
 import random
-from constants import SIMULATION_DURATION, C1W1, C1W2, C1W3, buffer_capacity, c1_initial, c2_initial, c3_initial, c1_max, c2_max, c3_max
+import text_file_fnc
+from queue import Queue
+from constants import SIMULATION_DURATION, C1W1, C1W2, C1W3, buffer_capacity, c1_initial, c2_initial, c3_initial, c1_max, c2_max, c3_max, it_dir, st_dir
 
 # Get all the service times of inspectors and workstations
 st = service_times.ServiceTimes()
+measurements = measurements.Measurements()
 
 class Facility: 
     """
@@ -45,10 +49,16 @@ def inspector_1(env, facility):
     and once finished will then place it in one of the workstation's component 1's (c1w1, c1w2, c1w3) containers
     """
     while True:
+        idle_time = env.now
         yield facility.c1.get(1)
         print("Inspector 1 has started inspecting component 1")
+        idle_time_done = env.now
+
+        measurements.it_i1(idle_time_done - idle_time)
+
         # Get the service time from the file
         service_time = st.get_random_i1_st()
+        measurements.st_i1(service_time)
         yield env.timeout(service_time) 
 
         print("Inspector 1 service time: " + str(service_time) + " minutes")
@@ -77,6 +87,8 @@ def inspector_1(env, facility):
         if buffer == C1W3:
             yield facility.c1w3.put(1)
             print("Inspector 1 has finished inspecting component 1 and has placed it in C1W3") 
+
+        measurements.add_comp_1_count()
         
 def inspector_2(env, facility):
     """
@@ -90,21 +102,31 @@ def inspector_2(env, facility):
         random_component = random.randint(2,3)
 
         if random_component == 2:
-            print("Inspector 2 has started inspecting component 2")
+            idle_time = env.now
             yield facility.c2.get(1)
+            print("Inspector 2 has started inspecting component 2")
+            idle_time_done = env.now
+            measurements.it_i2(idle_time_done - idle_time)
             service_time = st.get_random_i2_2_st()
+            measurements.st_i2_2(service_time)
             yield env.timeout(service_time)
             print("Inspector 2 service time on C2: " + str(service_time) + " minutes")
             yield facility.c2w2.put(1) # Will be blocked until there's space in this buffer
             print("Inspector 2 has finished inspecting component 2 and has placed it in C2W2")
+            measurements.add_comp_2_count()
         else:
-            print("Inspector 2 has started inspecting component 3")
+            idle_time = env.now
             yield facility.c3.get(1)
+            print("Inspector 2 has started inspecting component 3")
+            idle_time_done = env.now
+            measurements.it_i2(idle_time_done - idle_time)
             service_time = st.get_random_i2_3_st()
+            measurements.st_i2_3(service_time)
             yield env.timeout(service_time)
             print("Inspector 2 service time on C3: " + str(service_time) + " minutes")
             yield facility.c3w3.put(1) # Will be blocked until there's space in this buffer
             print("Inspector 2 has finished inspecting component 3 and has placed it in C3W3")
+            measurements.add_comp_3_count()
 
 def workstation_1(env, facility):
     """
@@ -115,12 +137,17 @@ def workstation_1(env, facility):
     Once component 1 is available in this container, it will then begin assembling product 1. 
     """
     while True:
+        idle_time = env.now
         yield facility.c1w1.get(1)
         print("Workstation 1 has begun assembling product 1")
+        idle_time_done = env.now
+        measurements.it_w1(idle_time_done - idle_time)
         service_time = st.get_random_w1_st()
+        measurements.st_w1(service_time)
         yield env.timeout(service_time)
         print("Workstation 1 service time: " + str(service_time) + " minutes")
         print("Workstation 1 has finished assembling product 1")
+        measurements.add_prod_1_count()
 
 def workstation_2(env, facility):
     """
@@ -132,15 +159,20 @@ def workstation_2(env, facility):
     Once available, it will begin assembling product 2.
     """
     while True:
+        idle_time = env.now
         c1_req = facility.c1w2.get(1)
         c2_req = facility.c2w2.get(1)
         print("Workstation 2 is waiting for product 1 and 2...")
         yield c1_req & c2_req # Wait until c1 and c2 components are both available
         print("Workstation 2 has started assembling product 2")
+        idle_time_done = env.now
+        measurements.it_w2(idle_time_done - idle_time)
         service_time = st.get_random_w2_st()
+        measurements.st_w2(service_time)
         yield env.timeout(service_time)
         print("Workstation 2 service time: " + str(service_time) + " minutes")
         print("Workstation 2 has finished assembling product 2")
+        measurements.add_prod_2_count()
 
 def workstation_3(env, facility):
     """
@@ -152,15 +184,20 @@ def workstation_3(env, facility):
     Once available, it will begin assembling product 3.
     """
     while True:
+        idle_time = env.now
         c1_req = facility.c1w3.get(1)
         c3_req = facility.c3w3.get(1)
         print("Workstation 3 is waiting for product 1 and 3...")
         yield c1_req & c3_req # Wait until c1 and c3 components are both available
         print("Workstation 3 has started assembling product 3")
+        idle_time_done = env.now
+        measurements.it_w3(idle_time_done - idle_time)
         service_time = st.get_random_w3_st()
+        measurements.st_w3(service_time)
         yield env.timeout(service_time)
         print("Workstation 3 service time: " + str(service_time) + " minutes")
         print("Workstation 3 has finished assembling product 3")
+        measurements.add_prod_3_count()
 
 def get_chosen_buffer_at_capacity(facility):
     """
@@ -239,3 +276,31 @@ if __name__ == '__main__':
 
     print(f'----------------------------------')
     print(f'SIMULATION COMPLETED')
+
+    print(f'################################################################')
+    print(f'SIMULATION DURATION: {SIMULATION_DURATION}')
+    print(f'Here are the simulation results: ')
+
+    print(f'Product 1 Count: {measurements.get_product_1_count()}')
+    print(f'Product 2 Count: {measurements.get_product_2_count()}')
+    print(f'Product 3 Count: {measurements.get_product_3_count()}')
+
+    print(f'Component 1 Count: {measurements.get_component_1_count()}')
+    print(f'Component 2 Count: {measurements.get_component_2_count()}')
+    print(f'Component 3 Count: {measurements.get_component_3_count()}')
+
+    text_file_fnc.list_to_text_file('./data/' + st_dir, '/i1_service_times.txt', measurements.get_list_st_i1())
+    text_file_fnc.list_to_text_file('./data/' + st_dir, '/i22_service_times.txt', measurements.get_list_st_i2_2())
+    text_file_fnc.list_to_text_file('./data/' + st_dir, '/i23_service_times.txt', measurements.get_list_st_i2_3())
+    text_file_fnc.list_to_text_file('./data/' + st_dir, '/w1_service_times.txt', measurements.get_list_st_w1())
+    text_file_fnc.list_to_text_file('./data/' + st_dir, '/w2_service_times.txt', measurements.get_list_st_w2())
+    text_file_fnc.list_to_text_file('./data/' + st_dir, '/w3_service_times.txt', measurements.get_list_st_w3())
+
+    text_file_fnc.list_to_text_file('./data/' + it_dir, '/i1_idle_times.txt', measurements.get_list_it_i1())
+    text_file_fnc.list_to_text_file('./data/' + it_dir, '/i2_idle_times.txt', measurements.get_list_it_i2())
+    text_file_fnc.list_to_text_file('./data/' + it_dir, '/w1_idle_times.txt', measurements.get_list_it_w1())
+    text_file_fnc.list_to_text_file('./data/' + it_dir, '/w2_idle_times.txt', measurements.get_list_it_w3())
+    text_file_fnc.list_to_text_file('./data/' + it_dir, '/w3_idle_times.txt', measurements.get_list_it_w3())
+
+    print(f'Other results are saved in the data directory.')
+

@@ -6,6 +6,7 @@ also dependent on the dataset
 """
 import math
 import rng
+import text_file_fnc
 from constants import num_samples
 
 def get_inverse_cdf_exp_val(lamd, rand):
@@ -36,25 +37,12 @@ if __name__ == "__main__":
     inspector22_var_seq = generate_random_variates(num_samples, inspector22_lam)
     inspector23_var_seq = generate_random_variates(num_samples, inspector23_lam)
 
-    print(workstation1_var_seq)
-    print("\n")
-    print(workstation2_var_seq)
-    print("\n")
-    print(workstation3_var_seq)
-    print("\n")
-    print(inspector1_var_seq)
-    print("\n")
-    print(inspector22_var_seq)
-    print("\n")
-    print(inspector23_var_seq)
-    print("\n")
-
-    file = open('random_variates_w1.txt', 'w')
-    for rand_var in workstation1_var_seq:
-         file.write(str(rand_var)+"\n")
-
-    file.close()
-
+    text_file_fnc.list_to_text_file('./data/rv/', 'random_variates_w1.txt', workstation1_var_seq)
+    text_file_fnc.list_to_text_file('./data/rv/', 'random_variates_w2.txt', workstation2_var_seq)
+    text_file_fnc.list_to_text_file('./data/rv/', 'random_variates_w3.txt', workstation3_var_seq)
+    text_file_fnc.list_to_text_file('./data/rv/', 'random_variates_i1.txt', inspector1_var_seq)
+    text_file_fnc.list_to_text_file('./data/rv/', 'random_variates_i22.txt', inspector22_var_seq)
+    text_file_fnc.list_to_text_file('./data/rv/', 'random_variates_i23.txt', inspector23_var_seq)
 
 
 

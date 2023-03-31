@@ -11,6 +11,7 @@ import numpy as np
 import scipy.stats as stats
 import math
 from constants import num_samples
+import text_file_fnc
 
 
 def linear_congruential_generator(m: int, a: int, c: int, seed: int) -> Iterator[int]:
@@ -50,10 +51,6 @@ def rand_float_samples(n_samples: int, seed: int = 114121598):
 if __name__ == "__main__":
     rand_sequence = rand_float_samples(num_samples)
 
-    file = open('random_numbers.txt', 'w')
-    for r_num in rand_sequence:
-         file.write(str(r_num)+"\n")
-
-    file.close()
+    text_file_fnc.list_to_text_file('./data/random_numbers.txt', rand_sequence)
 
     counts, bins, bars = plt.hist(rand_sequence, bins=17) # Bin Size = sqrt(sample_size)

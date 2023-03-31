@@ -10,7 +10,7 @@ from constants import data_directory
 
 def inspector1_1_st():
     i1_st = []
-    inspector1_data = data_directory / 'servinsp1.dat' 
+    inspector1_data = data_directory / 'random_variates_i1.txt' 
     with open(inspector1_data, 'r') as f:
         for line in f.readlines():
             i1_st.append(float(line))
@@ -19,7 +19,7 @@ def inspector1_1_st():
 
 def inspector2_2_st():
     i2_2_st = []
-    inspector2_data = data_directory / 'servinsp22.dat'
+    inspector2_data = data_directory / 'random_variates_i22.txt'
     with open(inspector2_data, 'r') as f:
         for line in f.readlines():
             i2_2_st.append(float(line))
@@ -28,7 +28,7 @@ def inspector2_2_st():
 
 def inspector2_3_st():
     i2_3_st = []
-    inspector2_data = data_directory / 'servinsp23.dat'
+    inspector2_data = data_directory / 'random_variates_i23.txt'
     with open(inspector2_data, 'r') as f:
         for line in f.readlines():
             i2_3_st.append(float(line))
@@ -36,7 +36,7 @@ def inspector2_3_st():
 
 def workstation1_st():
     w1_st = []
-    ws_data = data_directory / 'ws1.dat'
+    ws_data = data_directory / 'random_variates_w1.txt'
     with open(ws_data, 'r') as f:
         for line in f.readlines():
             w1_st.append(float(line))
@@ -44,7 +44,7 @@ def workstation1_st():
 
 def workstation2_st():
     w2_st = []
-    ws_data = data_directory / 'ws2.dat'
+    ws_data = data_directory / 'random_variates_w2.txt'
     with open(ws_data, 'r') as f:
         for line in f.readlines():
             w2_st.append(float(line))
@@ -52,7 +52,7 @@ def workstation2_st():
 
 def workstation3_st():
     w3_st = []
-    ws_data = data_directory / 'ws3.dat'
+    ws_data = data_directory / 'random_variates_w3.txt'
     with open(ws_data, 'r') as f:
         for line in f.readlines():
             w3_st.append(float(line))
