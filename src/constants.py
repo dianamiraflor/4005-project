@@ -15,19 +15,21 @@ C1W2 = 'C1W2'
 C1W3 = 'C1W3'
 
 # ------------ Configurable
-SIMULATION_DURATION = 100000 
+SIMULATION_DURATION = 30000
 # NOTE: To imitate infinite number of components - set to a high (very high) number.
 # NOTE: Make initial numbers higher than simulation
-c1_initial = 500
-c2_initial = 500
-c3_initial = 500
-c1_max = 1000
-c2_max = 1000
-c3_max = 1000
+# NOTE: c1 initial > c2 & c3
+c1_initial = 1000000000
+c2_initial = 1000000
+c3_initial = 1000000
+c1_max = 100000000000000
+c2_max = 100000000000000
+c3_max = 100000000000000
 
 # ------------ Output directories for a simulation
 st_dir = 'st_sim_dur_' + str(SIMULATION_DURATION)
 it_dir = 'id_sim_dur_' + str(SIMULATION_DURATION)
+comp_dir = 'comp_time_sim_dur_' + str(SIMULATION_DURATION)
 
 
 #------------- RNG & RVG TEST Config

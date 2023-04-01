@@ -13,8 +13,12 @@ import service_times
 import measurements
 import random
 import text_file_fnc
-from queue import Queue
-from constants import SIMULATION_DURATION, C1W1, C1W2, C1W3, buffer_capacity, c1_initial, c2_initial, c3_initial, c1_max, c2_max, c3_max, it_dir, st_dir
+from constants import SIMULATION_DURATION, C1W1, C1W2, C1W3, buffer_capacity, c1_initial, c2_initial, c3_initial, c1_max, c2_max, c3_max, it_dir, st_dir, comp_dir
+from buffer import Buffer
+from component import Component
+from rng import rand_float_samples
+from rvg import generate_random_vars
+
 
 # Get all the service times of inspectors and workstations
 st = service_times.ServiceTimes()
@@ -40,7 +44,7 @@ class Facility:
         self.c1w3 = simpy.Container(env, capacity = buffer_capacity)
         self.c3w3 = simpy.Container(env, capacity = buffer_capacity)
 
-def inspector_1(env, facility):
+def inspector_1(env, facility, buffer1, buffer2, buffer4):
     """
     Inspector 1 process.
     This process will loop for the entirety of the simulation duration.
@@ -71,7 +75,7 @@ def inspector_1(env, facility):
         # Case 1: All buffers are at max capacity which will cause inspector 1 to block
         if c1w1_level == c1w2_level == c1w3_level == buffer_capacity:
             print("Inspector 1 has been blocked (all buffers are at max capacity) and is waiting for an available buffer")
-            buffer = get_chosen_buffer_at_capacity(c1w1_level, c1w2_level, c1w3_level, facility)
+            buffer = get_chosen_buffer_at_capacity(facility)
 
         # Case 2: All buffers are not at max capacity -> there is always an available buffer to place component 1 in
         else: 
@@ -80,17 +84,20 @@ def inspector_1(env, facility):
 
         if buffer == C1W1:
             yield facility.c1w1.put(1)
+            buffer1.put(Component(1), env.now)
             print("Inspector 1 has finished inspecting component 1 and has placed it in C1W1") 
         if buffer == C1W2:
             yield facility.c1w2.put(1)
+            buffer2.put(Component(1), env.now)
             print("Inspector 1 has finished inspecting component 1 and has placed it in C1W2") 
         if buffer == C1W3:
             yield facility.c1w3.put(1)
+            buffer4.put(Component(1), env.now)
             print("Inspector 1 has finished inspecting component 1 and has placed it in C1W3") 
 
         measurements.add_comp_1_count()
         
-def inspector_2(env, facility):
+def inspector_2(env, facility, buffer3, buffer5):
     """
     Inspector 2 process.
     This process will loop for the entirety of the simulation duration.
@@ -112,6 +119,7 @@ def inspector_2(env, facility):
             yield env.timeout(service_time)
             print("Inspector 2 service time on C2: " + str(service_time) + " minutes")
             yield facility.c2w2.put(1) # Will be blocked until there's space in this buffer
+            buffer3.put(Component(2), env.now)
             print("Inspector 2 has finished inspecting component 2 and has placed it in C2W2")
             measurements.add_comp_2_count()
         else:
@@ -125,10 +133,11 @@ def inspector_2(env, facility):
             yield env.timeout(service_time)
             print("Inspector 2 service time on C3: " + str(service_time) + " minutes")
             yield facility.c3w3.put(1) # Will be blocked until there's space in this buffer
+            buffer5.put(Component(3), env.now)
             print("Inspector 2 has finished inspecting component 3 and has placed it in C3W3")
             measurements.add_comp_3_count()
 
-def workstation_1(env, facility):
+def workstation_1(env, facility, buffer1):
     """
     Workstation 1 process.
     This process will loop for the entirety of the simulation duration.
@@ -139,17 +148,20 @@ def workstation_1(env, facility):
     while True:
         idle_time = env.now
         yield facility.c1w1.get(1)
-        print("Workstation 1 has begun assembling product 1")
-        idle_time_done = env.now
-        measurements.it_w1(idle_time_done - idle_time)
-        service_time = st.get_random_w1_st()
-        measurements.st_w1(service_time)
-        yield env.timeout(service_time)
-        print("Workstation 1 service time: " + str(service_time) + " minutes")
-        print("Workstation 1 has finished assembling product 1")
-        measurements.add_prod_1_count()
+        c1 = buffer1.get(env.now)
+        if c1 is not None:
+            measurements.add_comp_1_time(c1.get_time_spent())
+            print("Workstation 1 has begun assembling product 1")
+            idle_time_done = env.now
+            measurements.it_w1(idle_time_done - idle_time)
+            service_time = st.get_random_w1_st()
+            measurements.st_w1(service_time)
+            yield env.timeout(service_time)
+            print("Workstation 1 service time: " + str(service_time) + " minutes")
+            print("Workstation 1 has finished assembling product 1")
+            measurements.add_prod_1_count()
 
-def workstation_2(env, facility):
+def workstation_2(env, facility, buffer2, buffer3):
     """
     Workstation 2 process.
     This process will loop for the entirety of the simulation duration.
@@ -164,17 +176,22 @@ def workstation_2(env, facility):
         c2_req = facility.c2w2.get(1)
         print("Workstation 2 is waiting for product 1 and 2...")
         yield c1_req & c2_req # Wait until c1 and c2 components are both available
-        print("Workstation 2 has started assembling product 2")
-        idle_time_done = env.now
-        measurements.it_w2(idle_time_done - idle_time)
-        service_time = st.get_random_w2_st()
-        measurements.st_w2(service_time)
-        yield env.timeout(service_time)
-        print("Workstation 2 service time: " + str(service_time) + " minutes")
-        print("Workstation 2 has finished assembling product 2")
-        measurements.add_prod_2_count()
+        c1 = buffer2.get(env.now)
+        c2 = buffer3.get(env.now)
+        if c1 is not None and c2 is not None:
+            measurements.add_comp_1_time(c1.get_time_spent())
+            measurements.add_comp_2_time(c2.get_time_spent())
+            print("Workstation 2 has started assembling product 2")
+            idle_time_done = env.now
+            measurements.it_w2(idle_time_done - idle_time)
+            service_time = st.get_random_w2_st()
+            measurements.st_w2(service_time)
+            yield env.timeout(service_time)
+            print("Workstation 2 service time: " + str(service_time) + " minutes")
+            print("Workstation 2 has finished assembling product 2")
+            measurements.add_prod_2_count()
 
-def workstation_3(env, facility):
+def workstation_3(env, facility, buffer4, buffer5):
     """
     Workstation 3 process.
     This process will loop for the entirety of the simulation duration.
@@ -189,15 +206,25 @@ def workstation_3(env, facility):
         c3_req = facility.c3w3.get(1)
         print("Workstation 3 is waiting for product 1 and 3...")
         yield c1_req & c3_req # Wait until c1 and c3 components are both available
-        print("Workstation 3 has started assembling product 3")
-        idle_time_done = env.now
-        measurements.it_w3(idle_time_done - idle_time)
-        service_time = st.get_random_w3_st()
-        measurements.st_w3(service_time)
-        yield env.timeout(service_time)
-        print("Workstation 3 service time: " + str(service_time) + " minutes")
-        print("Workstation 3 has finished assembling product 3")
-        measurements.add_prod_3_count()
+        c1 = buffer4.get(env.now)
+        c3 = buffer5.get(env.now)
+        if c1 is not None and c3 is not None:
+            measurements.add_comp_1_time(c1.get_time_spent())
+            measurements.add_comp_3_time(c3.get_time_spent())
+            print("Workstation 3 has started assembling product 3")
+            idle_time_done = env.now
+            measurements.it_w3(idle_time_done - idle_time)
+            service_time = st.get_random_w3_st()
+            measurements.st_w3(service_time)
+            yield env.timeout(service_time)
+            print("Workstation 3 service time: " + str(service_time) + " minutes")
+            print("Workstation 3 has finished assembling product 3")
+            measurements.add_prod_3_count()
+
+def measure_num_components(env, facility):
+    """
+    This process monitors the number of components every clock tick 
+    """
 
 def get_chosen_buffer_at_capacity(facility):
     """
@@ -211,7 +238,7 @@ def get_chosen_buffer_at_capacity(facility):
     free_c1w2 = False
     free_c1w3 = False
     chosen_buffer = C1W1
-    while (not free_c1w1) & (not free_c1w2) & (not free_c1w3):
+    while (not free_c1w1) and (not free_c1w2) and (not free_c1w3):
         current_c1w1_level = facility.c1w1.level
         current_c1w2_level = facility.c1w2.level
         current_c1w3_level = facility.c1w3.level
@@ -238,11 +265,11 @@ def get_chosen_buffer(c1w1, c1w2, c1w3):
         return chosen_buffer
     
     # Case 2: First buffer (W1) has the lowest amount
-    if c1w1 <= c1w2 & c1w1 <= c1w3:
+    if c1w1 <= c1w2 and c1w1 <= c1w3:
         return chosen_buffer
 
     # Case 3: Second buffer (W2) has the lowest
-    if c1w2 <= c1w3 | c1w2 < c1w1:
+    if c1w2 <= c1w3 or c1w2 < c1w1:
         chosen_buffer = C1W2
         return chosen_buffer
     
@@ -258,7 +285,13 @@ if __name__ == '__main__':
     Run facility.py to start simulation.
     """
 
-    SIMULATION_DURATION = 20000
+    seed_input = 114121598
+
+    # simulation_duration = input('Please enter a simulation duration: ')
+    # seed_input = input('Please enter a seed: ')
+    
+    random_nums = rand_float_samples(300, seed = int(seed_input))
+    generate_random_vars(random_nums)
 
     print(f'STARTING MANUFACTURING FACILITY SIMULATION')
     print(f'----------------------------------')
@@ -266,11 +299,18 @@ if __name__ == '__main__':
     env = simpy.Environment()
     facility = Facility(env)
 
-    inspector_1_process = env.process(inspector_1(env, facility))
-    inspector_2_process = env.process(inspector_2(env, facility))
-    workstation_1_process = env.process(workstation_1(env, facility))
-    workstation_2_process = env.process(workstation_2(env, facility))
-    workstation_3_process = env.process(workstation_3(env, facility))
+    # -------- QUEUES / BUFFERS
+    buffer1 = Buffer(1)      # c1w1
+    buffer2 = Buffer(2)      # c1w2
+    buffer3 = Buffer(3)      # c2w2
+    buffer4 = Buffer(4)      # c1w3
+    buffer5 = Buffer(5)      # c3w3
+
+    inspector_1_process = env.process(inspector_1(env, facility, buffer1, buffer2, buffer4))
+    inspector_2_process = env.process(inspector_2(env, facility, buffer3, buffer5))
+    workstation_1_process = env.process(workstation_1(env, facility, buffer1))
+    workstation_2_process = env.process(workstation_2(env, facility, buffer2, buffer3))
+    workstation_3_process = env.process(workstation_3(env, facility, buffer4, buffer5))
 
     env.run(until = SIMULATION_DURATION)
 
@@ -301,6 +341,10 @@ if __name__ == '__main__':
     text_file_fnc.list_to_text_file('./data/' + it_dir, '/w1_idle_times.txt', measurements.get_list_it_w1())
     text_file_fnc.list_to_text_file('./data/' + it_dir, '/w2_idle_times.txt', measurements.get_list_it_w3())
     text_file_fnc.list_to_text_file('./data/' + it_dir, '/w3_idle_times.txt', measurements.get_list_it_w3())
+
+    text_file_fnc.list_to_text_file('./data/' + comp_dir, '/comp1_time_spent.txt', measurements.get_component_1_time())
+    text_file_fnc.list_to_text_file('./data/' + comp_dir, '/comp2_time_spent.txt', measurements.get_component_2_time())
+    text_file_fnc.list_to_text_file('./data/' + comp_dir, '/comp3_time_spent.txt', measurements.get_component_3_time())
 
     print(f'Other results are saved in the data directory.')
 
