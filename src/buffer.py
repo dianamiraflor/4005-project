@@ -22,9 +22,10 @@ class Buffer():
         self._buffer_length = 0             # Current buffer size
 
         self._Queue = []
-        self._QueueLengthTime =[[0, 0.0]]   # [[queue_length, clock]]
+        self._QueueLengthTime =[[0, 0.0]]   # [[queue_length, clock]] TODO: Will be used for stats
 
-        self._total_count = 0
+        self._total_count = 0               # This will measure the amount of times put() was called. 
+                                            # Or the amount of times a component has been placed in the buffer
 
 
     def put(self, comp: Component, time):
@@ -42,6 +43,7 @@ class Buffer():
             self._buffer_length += 1  
             self._total_count += 1 
             self._Queue.append(comp)
+            self._QueueLengthTime.append([self._buffer_length, time])
             comp.set_queue_time(time)
             return True
 
@@ -60,10 +62,14 @@ class Buffer():
             self._buffer_length -= 1
             component = self._Queue.pop(0)
             component.set_assembly_time(time)
+            self._QueueLengthTime.append([self._buffer_length, time])
 
             return component
         
     def get_total_count(self):
         return self._total_count
+    
+    def get_queue_length_time(self):
+        return self._QueueLengthTime
 
        

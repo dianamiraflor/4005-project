@@ -58,19 +58,8 @@ class Measurements():
         }
 
         ################################### USED FOR LITTLE'S LAW
-
-        # ------ Times when buffers are empty
-        # [[length, duration]]
-        self.buffer_length_times = {
-            'buffer1': [], 
-            'buffer2': [],
-            'buffer3': [],
-            'buffer4': [],
-            'buffer5': []
-        }
-
-        # ------ Times when workstations are busy assembling
-        # [[number_of_components, duration]]
+        # ------ # Of Components in Workstation + Time
+        # [[number_of_components, time]]
         self.workstation_length_times = {
             'workstation1': [], 
             'workstation2': [],

@@ -25,6 +25,7 @@ from stats import generate_stats
 st = service_times.ServiceTimes()
 measurements = measurements.Measurements()
 
+
 class Facility: 
     """
     A Facility class.
@@ -54,53 +55,58 @@ def inspector_1(env, facility, buffer1, buffer2, buffer4):
     and once finished will then place it in one of the workstation's component 1's (c1w1, c1w2, c1w3) containers
     """
     while True:
-        idle_time = env.now
-        yield facility.c1.get(1)
-        measurements.add_comp_1_count()
+        # Inspector is not idle at the start 
+        idle = False
+        idle_start = 0.0        # For block time
+        idle_end = 0.0          # For block time
 
-        comp = Component(1)
-        comp.set_start_time(env.now)
-
+        ############### INSPECTING ###############
+        service_time = st.get_random_i1_st() 
+        c1 = Component(1)
+        c1.set_start_time()
         print("Inspector 1 has started inspecting component 1")
-        idle_time_done = env.now
-
-        measurements.it_i1(idle_time_done - idle_time)
-
-        # Get the service time from the file
-        service_time = st.get_random_i1_st()
-        measurements.st_i1(service_time)
-        yield env.timeout(service_time) 
-
-        print("Inspector 1 service time: " + str(service_time) + " minutes")
+        yield env.timeout(service_time)
         
-        # TODO: Simulation does not simulate blocking for inspector 1 
+
+        ################ PLACING COMPONENT IN BUFFER ################
         c1w1_level = facility.c1w1.level
         c1w2_level = facility.c1w2.level
         c1w3_level = facility.c1w3.level
 
         # Case 1: All buffers are at max capacity which will cause inspector 1 to block
         if c1w1_level == c1w2_level == c1w3_level == buffer_capacity:
+            idle = True
+            idle_start = env.now
             print("Inspector 1 has been blocked (all buffers are at max capacity) and is waiting for an available buffer")
-            buffer = get_chosen_buffer_at_capacity(facility)
+            buffer, idle = get_chosen_buffer_at_capacity(facility)
+            idle_end = env.now
 
         # Case 2: All buffers are not at max capacity -> there is always an available buffer to place component 1 in
         else: 
             print("Inspector 1 is currently choosing the shortest buffer (queue) to place a component in")
             buffer = get_chosen_buffer(c1w1_level, c1w2_level, c1w3_level)
 
-        if buffer == C1W1:
-            yield facility.c1w1.put(1)
-            buffer1.put(comp, env.now)
-            print("Inspector 1 has finished inspecting component 1 and has placed it in C1W1") 
-        if buffer == C1W2:
-            yield facility.c1w2.put(1)
-            buffer2.put(comp, env.now)
-            print("Inspector 1 has finished inspecting component 1 and has placed it in C1W2") 
-        if buffer == C1W3:
-            yield facility.c1w3.put(1)
-            buffer4.put(comp, env.now)
-            print("Inspector 1 has finished inspecting component 1 and has placed it in C1W3") 
-        
+        if not idle:
+            if buffer == C1W1:
+                yield facility.c1w1.put(1)
+                buffer1.put(c1, env.now)
+                print("Inspector 1 has finished inspecting component 1 and has placed it in C1W1") 
+            if buffer == C1W2:
+                yield facility.c1w2.put(1)
+                buffer2.put(c1, env.now)
+                print("Inspector 1 has finished inspecting component 1 and has placed it in C1W2") 
+            if buffer == C1W3:
+                yield facility.c1w3.put(1)
+                buffer4.put(c1, env.now)
+                print("Inspector 1 has finished inspecting component 1 and has placed it in C1W3") 
+
+        measurements.add_comp_1_count() # STATS
+        measurements.st_i1(service_time) # STATS
+        measurements.it_i1(idle_end - idle_start)
+        measurements.add_inspector1_component_times(env.now - c1.get_start_time())
+
+
+
 def inspector_2(env, facility, buffer3, buffer5):
     """
     Inspector 2 process.
@@ -115,40 +121,46 @@ def inspector_2(env, facility, buffer3, buffer5):
         if random_component == 2:
             idle_time = env.now
 
-            comp = Component(2)
-            comp.set_start_time(env.now)
+            c2 = Component(2)
+            c2.set_start_time(env.now)
 
             yield facility.c2.get(1)
-            measurements.add_comp_2_count()
             print("Inspector 2 has started inspecting component 2")
             idle_time_done = env.now
-            measurements.it_i2(idle_time_done - idle_time)
             service_time = st.get_random_i2_2_st()
-            measurements.st_i2_2(service_time)
             yield env.timeout(service_time)
             print("Inspector 2 service time on C2: " + str(service_time) + " minutes")
             yield facility.c2w2.put(1) # Will be blocked until there's space in this buffer
-            buffer3.put(comp, env.now)
+            buffer3.put(c2, env.now)
             print("Inspector 2 has finished inspecting component 2 and has placed it in C2W2")
+
+            # STATS
+            measurements.add_comp_2_count()
+            measurements.it_i2(idle_time_done - idle_time)
+            measurements.st_i2_2(service_time)
+            measurements.add_inspector23_component_times(env.now - c2.get_start_time())
             
         else:
             idle_time = env.now
 
-            comp = Component(3)
-            comp.set_start_time(env.now)
+            c3 = Component(3)
+            c3.set_start_time(env.now)
 
             yield facility.c3.get(1)
-            measurements.add_comp_3_count()
             print("Inspector 2 has started inspecting component 3")
             idle_time_done = env.now
-            measurements.it_i2(idle_time_done - idle_time)
             service_time = st.get_random_i2_3_st()
-            measurements.st_i2_3(service_time)
             yield env.timeout(service_time)
             print("Inspector 2 service time on C3: " + str(service_time) + " minutes")
             yield facility.c3w3.put(1) # Will be blocked until there's space in this buffer
-            buffer5.put(comp, env.now)
+            buffer5.put(c3, env.now)
             print("Inspector 2 has finished inspecting component 3 and has placed it in C3W3")
+
+            # STATS
+            measurements.add_comp_3_count()
+            measurements.it_i2(idle_time_done - idle_time)
+            measurements.st_i2_3(service_time)
+            measurements.add_inspector23_component_times(env.now - c3.get_start_time())
 
 def workstation_1(env, facility, buffer1):
     """
@@ -160,22 +172,25 @@ def workstation_1(env, facility, buffer1):
     """
     while True:
         idle_time = env.now
+        measurements.add_workstation1_length_times(0, idle_time)
         yield facility.c1w1.get(1)
         c1 = buffer1.get(env.now)
-        if c1 is not None:
-
+        if c1 is not None: # TODO: Might be a problem.
             
+            measurements.add_workstation1_length_times(1, env.now)
             print("Workstation 1 has begun assembling product 1")
             idle_time_done = env.now
-            measurements.it_w1(idle_time_done - idle_time)
             service_time = st.get_random_w1_st()
-            measurements.st_w1(service_time)
             yield env.timeout(service_time)
             print("Workstation 1 service time: " + str(service_time) + " minutes")
             print("Workstation 1 has finished assembling product 1")
             
-            c1.set_end_time(env.now)
+            c1.set_end_time(env.now)        # Ends component time
+            c1.set_time_spent()             # Calculates time in the facility
+            c1.buffer_workstation_time()    # Calculates time in buffer + workstation
 
+            measurements.it_w1(idle_time_done - idle_time)
+            measurements.st_w1(service_time)
             measurements.add_prod_1_count()
             measurements.add_comp_1_time(c1.get_time_spent())
             measurements.add_comp_1_time_buf_work(c1.get_buffer_workstation_time())
@@ -191,26 +206,36 @@ def workstation_2(env, facility, buffer2, buffer3):
     """
     while True:
         idle_time = env.now
-        c1_req = facility.c1w2.get(1)
-        c2_req = facility.c2w2.get(1)
+        measurements.add_workstation2_length_times(0, idle_time)
+
         print("Workstation 2 is waiting for product 1 and 2...")
-        yield c1_req & c2_req # Wait until c1 and c2 components are both available
+
+        yield facility.c1w2.get(1) or facility.c2w2.get(1) # Waits until one is available
+        measurements.add_workstation2_length_times(1, env.now)
+
+        yield facility.c1w2.get(1) and facility.c2w2.get(1) # Wait until c1 and c2 components are both available
         c1 = buffer2.get(env.now)
         c2 = buffer3.get(env.now)
         if c1 is not None and c2 is not None:
-            
+            measurements.add_workstation2_length_times(2, env.now)
 
             print("Workstation 2 has started assembling product 2")
             idle_time_done = env.now
-            measurements.it_w2(idle_time_done - idle_time)
             service_time = st.get_random_w2_st()
-            measurements.st_w2(service_time)
             yield env.timeout(service_time)
             print("Workstation 2 service time: " + str(service_time) + " minutes")
             print("Workstation 2 has finished assembling product 2")
 
-            c1.set_end_time(env.now)
+            c1.set_end_time(env.now)        # Ends component time
+            c1.set_time_spent()             # Calculates time in the facility
+            c1.buffer_workstation_time()    # Calculates time in buffer + workstation
+
             c2.set_end_time(env.now)
+            c2.set_time_spent()             # Calculates time in the facility
+            c2.buffer_workstation_time()    # Calculates time in buffer + workstation
+            
+            measurements.it_w2(idle_time_done - idle_time)
+            measurements.st_w2(service_time)
 
             measurements.add_prod_2_count()
             measurements.add_comp_1_time(c1.get_time_spent())
@@ -230,20 +255,21 @@ def workstation_3(env, facility, buffer4, buffer5):
     """
     while True:
         idle_time = env.now
-        c1_req = facility.c1w3.get(1)
-        c3_req = facility.c3w3.get(1)
+        measurements.add_workstation3_length_times(0, idle_time)
+
         print("Workstation 3 is waiting for product 1 and 3...")
-        yield c1_req & c3_req # Wait until c1 and c3 components are both available
+
+        yield facility.c1w3.get(1) or facility.c3w3.get(1) # Waits until one is available
+        measurements.add_workstation3_length_times(1, env.now)
+
+        yield facility.c1w3.get(1) and facility.c3w3.get(1) # Wait until c1 and c3 components are both available
         c1 = buffer4.get(env.now)
         c3 = buffer5.get(env.now)
         if c1 is not None and c3 is not None:
             
-
             print("Workstation 3 has started assembling product 3")
             idle_time_done = env.now
-            measurements.it_w3(idle_time_done - idle_time)
             service_time = st.get_random_w3_st()
-            measurements.st_w3(service_time)
             yield env.timeout(service_time)
             print("Workstation 3 service time: " + str(service_time) + " minutes")
             print("Workstation 3 has finished assembling product 3")
@@ -251,20 +277,23 @@ def workstation_3(env, facility, buffer4, buffer5):
             c1.set_end_time(env.now)
             c3.set_end_time(env.now)
             
-            measurements.add_prod_3_count()
+            measurements.it_w3(idle_time_done - idle_time)
+            measurements.st_w3(service_time)
 
+            measurements.add_prod_3_count()
             measurements.add_comp_1_time(c1.get_time_spent())
             measurements.add_comp_3_time(c3.get_time_spent())
 
             measurements.add_comp_1_time_buf_work(c1.get_buffer_workstation_time())
             measurements.add_comp_3_time_buf_work(c3.get_buffer_workstation_time())
 
+
 def measure_num_components(env, facility):
     """
     This process monitors the number of components every clock tick 
     """
 
-def get_chosen_buffer_at_capacity(facility):
+def get_chosen_buffer_at_capacity(facility, idle):
     """
     A method that will make inspector 1 block when all of its buffers for component 1 are at full capacity.
     Inspector 1 will then remain in a loop until a buffer has space.
@@ -290,7 +319,10 @@ def get_chosen_buffer_at_capacity(facility):
             chosen_buffer = C1W3
             free_c1w3 = True
 
-    return chosen_buffer
+    if idle:
+        idle = False 
+
+    return chosen_buffer, idle
 
 def get_chosen_buffer(c1w1, c1w2, c1w3):
     """
@@ -346,7 +378,7 @@ if __name__ == '__main__':
     workstation_1_process = env.process(workstation_1(env, facility, buffers[0]))
     workstation_2_process = env.process(workstation_2(env, facility, buffers[1], buffers[2]))
     workstation_3_process = env.process(workstation_3(env, facility, buffers[3], buffers[4]))
-
+    
     env.run(until = SIMULATION_DURATION)
 
     print(f'----------------------------------')
@@ -380,6 +412,14 @@ if __name__ == '__main__':
     text_file_fnc.list_to_text_file('./data/' + comp_dir, '/comp1_time_spent.txt', measurements.get_component_1_time())
     text_file_fnc.list_to_text_file('./data/' + comp_dir, '/comp2_time_spent.txt', measurements.get_component_2_time())
     text_file_fnc.list_to_text_file('./data/' + comp_dir, '/comp3_time_spent.txt', measurements.get_component_3_time())
+    
+    # TODO: Collect buffer length time stats for LITTLE'S LAW
+    buffer1_queue_length_time = buffers[0].get_queue_length_time()
+    buffer2_queue_length_time = buffers[1].get_queue_length_time()
+    buffer3_queue_length_time = buffers[2].get_queue_length_time()
+    buffer4_queue_length_time = buffers[3].get_queue_length_time()
+    buffer5_queue_length_time = buffers[4].get_queue_length_time()
+    
 
     print(f'Other results are saved in the data directory.')
 

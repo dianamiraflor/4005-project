@@ -68,3 +68,6 @@ class Component():
     
     def get_status(self):
         return self._is_ready
+    
+    def get_start_time(self):
+        return self._start_time
