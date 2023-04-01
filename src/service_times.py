@@ -19,6 +19,9 @@ class ServiceTimes():
 
     
     def get_random_i1_st(self) -> float: 
+        """
+        TODO: No need to randomly choose ? 
+        """
         return random.choice(self.i1_st)
     
     def get_random_i2_2_st(self) -> float:

@@ -18,6 +18,7 @@ from buffer import Buffer
 from component import Component
 from rng import rand_float_samples
 from rvg import generate_random_vars
+from stats import generate_stats
 
 
 # Get all the service times of inspectors and workstations
@@ -55,6 +56,11 @@ def inspector_1(env, facility, buffer1, buffer2, buffer4):
     while True:
         idle_time = env.now
         yield facility.c1.get(1)
+        measurements.add_comp_1_count()
+
+        comp = Component(1)
+        comp.set_start_time(env.now)
+
         print("Inspector 1 has started inspecting component 1")
         idle_time_done = env.now
 
@@ -84,18 +90,16 @@ def inspector_1(env, facility, buffer1, buffer2, buffer4):
 
         if buffer == C1W1:
             yield facility.c1w1.put(1)
-            buffer1.put(Component(1), env.now)
+            buffer1.put(comp, env.now)
             print("Inspector 1 has finished inspecting component 1 and has placed it in C1W1") 
         if buffer == C1W2:
             yield facility.c1w2.put(1)
-            buffer2.put(Component(1), env.now)
+            buffer2.put(comp, env.now)
             print("Inspector 1 has finished inspecting component 1 and has placed it in C1W2") 
         if buffer == C1W3:
             yield facility.c1w3.put(1)
-            buffer4.put(Component(1), env.now)
+            buffer4.put(comp, env.now)
             print("Inspector 1 has finished inspecting component 1 and has placed it in C1W3") 
-
-        measurements.add_comp_1_count()
         
 def inspector_2(env, facility, buffer3, buffer5):
     """
@@ -110,7 +114,12 @@ def inspector_2(env, facility, buffer3, buffer5):
 
         if random_component == 2:
             idle_time = env.now
+
+            comp = Component(2)
+            comp.set_start_time(env.now)
+
             yield facility.c2.get(1)
+            measurements.add_comp_2_count()
             print("Inspector 2 has started inspecting component 2")
             idle_time_done = env.now
             measurements.it_i2(idle_time_done - idle_time)
@@ -119,12 +128,17 @@ def inspector_2(env, facility, buffer3, buffer5):
             yield env.timeout(service_time)
             print("Inspector 2 service time on C2: " + str(service_time) + " minutes")
             yield facility.c2w2.put(1) # Will be blocked until there's space in this buffer
-            buffer3.put(Component(2), env.now)
+            buffer3.put(comp, env.now)
             print("Inspector 2 has finished inspecting component 2 and has placed it in C2W2")
-            measurements.add_comp_2_count()
+            
         else:
             idle_time = env.now
+
+            comp = Component(3)
+            comp.set_start_time(env.now)
+
             yield facility.c3.get(1)
+            measurements.add_comp_3_count()
             print("Inspector 2 has started inspecting component 3")
             idle_time_done = env.now
             measurements.it_i2(idle_time_done - idle_time)
@@ -133,9 +147,8 @@ def inspector_2(env, facility, buffer3, buffer5):
             yield env.timeout(service_time)
             print("Inspector 2 service time on C3: " + str(service_time) + " minutes")
             yield facility.c3w3.put(1) # Will be blocked until there's space in this buffer
-            buffer5.put(Component(3), env.now)
+            buffer5.put(comp, env.now)
             print("Inspector 2 has finished inspecting component 3 and has placed it in C3W3")
-            measurements.add_comp_3_count()
 
 def workstation_1(env, facility, buffer1):
     """
@@ -150,7 +163,8 @@ def workstation_1(env, facility, buffer1):
         yield facility.c1w1.get(1)
         c1 = buffer1.get(env.now)
         if c1 is not None:
-            measurements.add_comp_1_time(c1.get_time_spent())
+
+            
             print("Workstation 1 has begun assembling product 1")
             idle_time_done = env.now
             measurements.it_w1(idle_time_done - idle_time)
@@ -159,7 +173,12 @@ def workstation_1(env, facility, buffer1):
             yield env.timeout(service_time)
             print("Workstation 1 service time: " + str(service_time) + " minutes")
             print("Workstation 1 has finished assembling product 1")
+            
+            c1.set_end_time(env.now)
+
             measurements.add_prod_1_count()
+            measurements.add_comp_1_time(c1.get_time_spent())
+            measurements.add_comp_1_time_buf_work(c1.get_buffer_workstation_time())
 
 def workstation_2(env, facility, buffer2, buffer3):
     """
@@ -179,8 +198,8 @@ def workstation_2(env, facility, buffer2, buffer3):
         c1 = buffer2.get(env.now)
         c2 = buffer3.get(env.now)
         if c1 is not None and c2 is not None:
-            measurements.add_comp_1_time(c1.get_time_spent())
-            measurements.add_comp_2_time(c2.get_time_spent())
+            
+
             print("Workstation 2 has started assembling product 2")
             idle_time_done = env.now
             measurements.it_w2(idle_time_done - idle_time)
@@ -189,7 +208,16 @@ def workstation_2(env, facility, buffer2, buffer3):
             yield env.timeout(service_time)
             print("Workstation 2 service time: " + str(service_time) + " minutes")
             print("Workstation 2 has finished assembling product 2")
+
+            c1.set_end_time(env.now)
+            c2.set_end_time(env.now)
+
             measurements.add_prod_2_count()
+            measurements.add_comp_1_time(c1.get_time_spent())
+            measurements.add_comp_2_time(c2.get_time_spent())
+
+            measurements.add_comp_1_time_buf_work(c1.get_buffer_workstation_time())
+            measurements.add_comp_2_time_buf_work(c2.get_buffer_workstation_time())
 
 def workstation_3(env, facility, buffer4, buffer5):
     """
@@ -209,8 +237,8 @@ def workstation_3(env, facility, buffer4, buffer5):
         c1 = buffer4.get(env.now)
         c3 = buffer5.get(env.now)
         if c1 is not None and c3 is not None:
-            measurements.add_comp_1_time(c1.get_time_spent())
-            measurements.add_comp_3_time(c3.get_time_spent())
+            
+
             print("Workstation 3 has started assembling product 3")
             idle_time_done = env.now
             measurements.it_w3(idle_time_done - idle_time)
@@ -219,7 +247,17 @@ def workstation_3(env, facility, buffer4, buffer5):
             yield env.timeout(service_time)
             print("Workstation 3 service time: " + str(service_time) + " minutes")
             print("Workstation 3 has finished assembling product 3")
+            
+            c1.set_end_time(env.now)
+            c3.set_end_time(env.now)
+            
             measurements.add_prod_3_count()
+
+            measurements.add_comp_1_time(c1.get_time_spent())
+            measurements.add_comp_3_time(c3.get_time_spent())
+
+            measurements.add_comp_1_time_buf_work(c1.get_buffer_workstation_time())
+            measurements.add_comp_3_time_buf_work(c3.get_buffer_workstation_time())
 
 def measure_num_components(env, facility):
     """
@@ -300,17 +338,14 @@ if __name__ == '__main__':
     facility = Facility(env)
 
     # -------- QUEUES / BUFFERS
-    buffer1 = Buffer(1)      # c1w1
-    buffer2 = Buffer(2)      # c1w2
-    buffer3 = Buffer(3)      # c2w2
-    buffer4 = Buffer(4)      # c1w3
-    buffer5 = Buffer(5)      # c3w3
+    buffers = [Buffer(1), Buffer(2), Buffer(3), Buffer(4), Buffer(5)]
+                # c1w1      c1w2        c2w2      c1w3       c3w3
 
-    inspector_1_process = env.process(inspector_1(env, facility, buffer1, buffer2, buffer4))
-    inspector_2_process = env.process(inspector_2(env, facility, buffer3, buffer5))
-    workstation_1_process = env.process(workstation_1(env, facility, buffer1))
-    workstation_2_process = env.process(workstation_2(env, facility, buffer2, buffer3))
-    workstation_3_process = env.process(workstation_3(env, facility, buffer4, buffer5))
+    inspector_1_process = env.process(inspector_1(env, facility, buffers[0], buffers[1], buffers[3]))
+    inspector_2_process = env.process(inspector_2(env, facility, buffers[2], buffers[4]))
+    workstation_1_process = env.process(workstation_1(env, facility, buffers[0]))
+    workstation_2_process = env.process(workstation_2(env, facility, buffers[1], buffers[2]))
+    workstation_3_process = env.process(workstation_3(env, facility, buffers[3], buffers[4]))
 
     env.run(until = SIMULATION_DURATION)
 
@@ -339,7 +374,7 @@ if __name__ == '__main__':
     text_file_fnc.list_to_text_file('./data/' + it_dir, '/i1_idle_times.txt', measurements.get_list_it_i1())
     text_file_fnc.list_to_text_file('./data/' + it_dir, '/i2_idle_times.txt', measurements.get_list_it_i2())
     text_file_fnc.list_to_text_file('./data/' + it_dir, '/w1_idle_times.txt', measurements.get_list_it_w1())
-    text_file_fnc.list_to_text_file('./data/' + it_dir, '/w2_idle_times.txt', measurements.get_list_it_w3())
+    text_file_fnc.list_to_text_file('./data/' + it_dir, '/w2_idle_times.txt', measurements.get_list_it_w2())
     text_file_fnc.list_to_text_file('./data/' + it_dir, '/w3_idle_times.txt', measurements.get_list_it_w3())
 
     text_file_fnc.list_to_text_file('./data/' + comp_dir, '/comp1_time_spent.txt', measurements.get_component_1_time())
@@ -347,4 +382,8 @@ if __name__ == '__main__':
     text_file_fnc.list_to_text_file('./data/' + comp_dir, '/comp3_time_spent.txt', measurements.get_component_3_time())
 
     print(f'Other results are saved in the data directory.')
+
+
+
+    print(f'Statistic generated are in /stats/')
 

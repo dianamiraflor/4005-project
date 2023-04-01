@@ -24,6 +24,8 @@ class Buffer():
         self._Queue = []
         self._QueueLengthTime =[[0, 0.0]]   # [[queue_length, clock]]
 
+        self._total_count = 0
+
 
     def put(self, comp: Component, time):
         """
@@ -37,9 +39,10 @@ class Buffer():
 
         # If there's space then put in the buffer
         else: 
-            self._buffer_length += 1   
+            self._buffer_length += 1  
+            self._total_count += 1 
             self._Queue.append(comp)
-            comp.set_start_time(time)
+            comp.set_queue_time(time)
             return True
 
 
@@ -56,9 +59,11 @@ class Buffer():
         else:
             self._buffer_length -= 1
             component = self._Queue.pop(0)
-            component.set_end_time(time) # TODO: Might be a future error.
-            component.set_time_spent()
+            component.set_assembly_time(time)
 
             return component
+        
+    def get_total_count(self):
+        return self._total_count
 
        

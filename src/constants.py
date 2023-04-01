@@ -28,7 +28,7 @@ c3_max = 100000000000000
 
 # ------------ Output directories for a simulation
 st_dir = 'st_sim_dur_' + str(SIMULATION_DURATION)
-it_dir = 'id_sim_dur_' + str(SIMULATION_DURATION)
+it_dir = 'it_sim_dur_' + str(SIMULATION_DURATION)
 comp_dir = 'comp_time_sim_dur_' + str(SIMULATION_DURATION)
 
 

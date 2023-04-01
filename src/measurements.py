@@ -4,181 +4,333 @@ class Measurements():
         ### MEASUREMENTS ###
 
         # ----- Service Times 
-        self.list_of_st_i1 = [] 
-        self.list_of_st_i2_2 = []
-        self.list_of_st_i2_3 = []
-        self.list_of_st_w1 = []
-        self.list_of_st_w2 = []
-        self.list_of_st_w3 = []
+        self.service_times = {
+            'inspector1': [],
+            'inspector22': [],
+            'inspector23': [],
+            'workstation1':[],
+            'workstation2':[],
+            'workstation3':[]
+        }
 
         # ----- Idle Times
-        self.list_of_it_i1 = []
-        self.list_of_it_i2 = []
-        self.list_of_it_w1 = []
-        self.list_of_it_w2 = []
-        self.list_of_it_w3 = []
-
-        # ------ Workstation Busy Times
-        self.list_of_w1_busy_times = []
-        self.list_of_w2_busy_times = []
-        self.list_of_w3_busy_times = []
+        self.idle_times = {
+            'inspector1': [],
+            'inspector2': [],
+            'workstation1':[],
+            'workstation2':[],
+            'workstation3':[]
+        }
 
         # ----- Product Counts
-        self.product_1_count = 0
-        self.product_2_count = 0
-        self.product_3_count = 0
+        self.product_counts = {
+            'product1': 0,
+            'product2' : 0,
+            'product3' : 0
+        }
 
-        # ------ Component Count
-        self.comp_1_count = 0 
-        self.comp_2_count = 0
-        self.comp_3_count = 0
+        # ------ Component Count - Counts the number of components that entered the system
+        self.comp_count_facility = {
+            'comp1':0,
+            'comp2':0,
+            'comp3':0
+        }
 
         # ------ Inspected Component Count
-        self.inspected_comp_1_count = 0
-        self.inspected_comp_2_count = 0
-        self.inspected_comp_3_count = 0
+        self.comp_count_inspected = {
+            'comp1':0,
+            'comp2':0,
+            'comp3':0
+        }
 
-        # ------ Component Times in 'System'
-        self.comp_1_time = []
-        self.comp_2_time = []
-        self.comp_3_time = []
+        # ------ Component Times in 'System' - Facility
+        self.comp_times_facility = {
+            'comp1':[],
+            'comp2':[],
+            'comp3':[]
+        }
+
+        # ------ Component Times in Buffer + Workstation
+        self.comp_times_buff_work = {
+            'comp1':[],
+            'comp2':[],
+            'comp3':[]
+        }
+
+        ################################### USED FOR LITTLE'S LAW
+
+        # ------ Times when buffers are empty
+        # [[length, duration]]
+        self.buffer_length_times = {
+            'buffer1': [], 
+            'buffer2': [],
+            'buffer3': [],
+            'buffer4': [],
+            'buffer5': []
+        }
+
+        # ------ Times when workstations are busy assembling
+        # [[number_of_components, duration]]
+        self.workstation_length_times = {
+            'workstation1': [], 
+            'workstation2': [],
+            'workstation3': []
+        }
+
+         # ------ Counts the time inspectors are holding each component for
+        self.inspector_component_times = {
+            'inspector1':[],
+            'inspector22':[],
+            'inspector23':[],
+        }
 
         #########################
 
     def st_i1(self, st):
-        self.list_of_st_i1.append(st)
+        self.service_times['inspector1'].append(st)
 
     def it_i1(self, it):
-        self.list_of_it_i1.append(it)
+        self.idle_times['inspector1'].append(it)
+
 
     def st_i2_2(self, st):
-        self.list_of_st_i2_2.append(st)
+        self.service_times['inspector22'].append(st)
 
     def st_i2_3(self, st):
-        self.list_of_st_i2_3.append(st)
+         self.service_times['inspector23'].append(st)
 
     def it_i2(self, it):
-        self.list_of_it_i2.append(it)
+        self.idle_times['inspector2'].append(it)
+
 
     def st_w1(self, st):
-        self.list_of_st_w1.append(st)
+        self.service_times['workstation1'].append(st)
     
     def it_w1(self, it):
-        self.list_of_it_w1.append(it)
+        self.idle_times['workstation1'].append(it)
+
 
     def st_w2(self, st):
-        self.list_of_st_w2.append(st)
+        self.service_times['workstation2'].append(st)
 
     def it_w2(self, it):
-        self.list_of_it_w2.append(it)
+        self.idle_times['workstation2'].append(it)
+
 
     def st_w3(self, st):
-        self.list_of_st_w3.append(st)
+        self.service_times['workstation3'].append(st)
 
     def it_w3(self, it):
-        self.list_of_it_w3.append(it)
+        self.idle_times['workstation3'].append(it)
+
 
     def add_prod_1_count(self):
-        self.product_1_count = self.product_1_count + 1
+        self.product_counts['product1'] += 1
 
     def add_prod_2_count(self):
-        self.product_2_count = self.product_2_count + 1
+        self.product_counts['product2'] += 1
 
     def add_prod_3_count(self):
-        self.product_3_count = self.product_3_count + 1
+        self.product_counts['product3'] += 1
+
 
     def add_comp_1_count(self):
-        self.comp_1_count = self.comp_1_count + 1
+        self.comp_count_facility['component1'] += 1
 
     def add_comp_2_count(self):
-        self.comp_2_count = self.comp_2_count + 1
+        self.comp_count_facility['component2'] += 1
 
     def add_comp_3_count(self):
-        self.comp_3_count = self.comp_3_count + 1
+        self.comp_count_facility['component3'] += 1
+
 
     def add_inspected_comp_1_count(self):
-        self.inspected_comp_1_count = self.inspected_comp_1_count + 1
+        self.comp_count_inspected['component1'] += 1
 
     def add_inspected_comp_2_count(self):
-        self.inspected_comp_2_count = self.inspected_comp_2_count + 1
+        self.comp_count_inspected['component2'] += 1
 
     def add_inspected_comp_3_count(self):
-        self.inspected_comp_3_count = self.inspected_comp_3_count + 1
+        self.comp_count_inspected['component3'] += 1
+
 
     def add_comp_1_time(self, time):
-        self.comp_1_time.append(time)
+        self.comp_times_facility['component1'].append(time)
 
     def add_comp_2_time(self, time):
-        self.comp_2_time.append(time)
+        self.comp_times_facility['component2'].append(time)
 
     def add_comp_3_time(self, time):
-        self.comp_3_time.append(time)
+        self.comp_times_facility['component3'].append(time)
+
+
+    def add_comp_1_time_buf_work(self, time):
+        self.comp_times_buff_work['component1'].append(time)
+
+    def add_comp_2_time_buf_work(self, time):
+        self.comp_times_buff_work['component1'].append(time)
+
+    def add_comp_3_time_buf_work(self, time):
+        self.comp_times_buff_work['component1'].append(time)
+
+
+    def add_buffer1_length_times(self, length, time):
+        self.buffer_length_times['buffer1'].append([length, time])
+
+    def add_buffer2_length_times(self, length, time):
+        self.buffer_length_times['buffer2'].append([length, time])
+
+    def add_buffer3_length_times(self, length, time):
+        self.buffer_length_times['buffer3'].append([length, time])
+
+    def add_buffer4_length_times(self, length, time):
+        self.buffer_length_times['buffer4'].append([length, time])
+
+    def add_buffer5_length_times(self, length, time):
+        self.buffer_length_times['buffer5'].append([length, time])
+
+
+    def add_workstation1_length_times(self, length, time):
+        self.workstation_length_times['workstation1'].append([length, time])
+
+    def add_workstation2_length_times(self, length, time):
+        self.workstation_length_times['workstation2'].append([length, time])
+
+    def add_workstation3_length_times(self, length, time):
+        self.workstation_length_times['workstation3'].append([length, time])
+
+
+    def add_inspector1_component_times(self, time):
+        self.inspector_component_times['inspector1'].append(time)
+
+    def add_inspector22_component_times(self, time):
+        self.inspector_component_times['inspector22'].append(time)
+
+    def add_inspector23_component_times(self, time):
+        self.inspector_component_times['inspector23'].append(time)
+
+# --------------------------------------------------------------
+
 
     def get_list_st_i1(self):
-        return self.list_of_st_i1
+        return self.service_times['inspector1']
     
     def get_list_it_i1(self):
-        return self.list_of_it_i1
+        return self.idle_times['inspector1']
+    
     
     def get_list_st_i2_2(self):
-        return self.list_of_st_i2_2
+        return self.service_times['inspector22']
     
     def get_list_st_i2_3(self):
-        return self.list_of_st_i2_3
+        return self.service_times['inspector23']
     
     def get_list_it_i2(self):
-        return self.list_of_it_i2
+        return self.idle_times['inspector2']
+    
     
     def get_list_st_w1(self):
-        return self.list_of_st_w1
+        return self.service_times['workstation1']
     
     def get_list_it_w1(self):
-        return self.list_of_it_w1
+        return self.idle_times['workstation1']
+    
     
     def get_list_st_w2(self):
-        return self.list_of_st_w2
+        return self.service_times['workstation2']
     
     def get_list_it_w2(self):
-        return self.list_of_it_w2
+        return self.idle_times['workstation2']
+    
     
     def get_list_st_w3(self):
-        return self.list_of_st_w3
+        return self.service_times['workstation3']
     
     def get_list_it_w3(self):
-        return self.list_of_it_w3
+        return self.idle_times['workstation3']
+    
     
     def get_product_1_count(self):
-        return self.product_1_count
+        return self.product_counts['product1']
     
     def get_product_2_count(self):
-        return self.product_2_count
+        return self.product_counts['product2']
     
     def get_product_3_count(self):
-        return self.product_3_count
+        return self.product_counts['product3']
+    
     
     def get_component_1_count(self):
-        return self.comp_1_count
+        return self.comp_count_facility['component1']
     
     def get_component_2_count(self):
-        return self.comp_2_count
+        return self.comp_count_facility['component2']
     
     def get_component_3_count(self):
-        return self.comp_3_count
+        return self.comp_count_facility['component3']
     
+
     def get_inspected_comp_1_count(self):
-        return self.inspected_comp_1_count
+        return self.comp_count_inspected['component1']
     
     def get_inspected_comp_2_count(self):
-        return self.inspected_comp_2_count
+        return self.comp_count_inspected['component2']
     
     def get_inspected_comp_3_count(self):
-        return self.inspected_comp_3_count
+        return self.comp_count_inspected['component3']
+    
     
     def get_component_1_time(self):
-        return self.comp_1_time
+        return self.comp_times_facility['component1']
 
     def get_component_2_time(self):
-        return self.comp_2_time
+        return self.comp_times_facility['component2']
     
     def get_component_3_time(self):
-        return self.comp_3_time
+        return self.comp_times_facility['component3']
+    
+    
+    def get_component_1_buf_work(self):
+        return self.comp_times_buff_work['component1']
+    
+    def get_component_2_buf_work(self):
+        return self.comp_times_buff_work['component2']
+    
+    def get_component_3_buf_work(self):
+        return self.comp_times_buff_work['component3']
+    
+
+    def get_buffer1_length_times(self):
+        return self.buffer_length_times['buffer1']
+    
+    def get_buffer2_length_times(self):
+        return self.buffer_length_times['buffer2']
+    
+    def get_buffer3_length_times(self):
+        return self.buffer_length_times['buffer3']
+    
+    def get_buffer4_length_times(self):
+        return self.buffer_length_times['buffer4']
+    
+    def get_buffer5_length_times(self):
+        return self.buffer_length_times['buffer5']
+    
+    
+    def get_workstation1_length_times(self):
+        return self.workstation_length_times['workstation1']
+    
+    def get_workstation2_length_times(self):
+        return self.workstation_length_times['workstation2']
+    
+    def get_workstation3_length_times(self):
+        return self.workstation_length_times['workstation3']
+    
+
+    def get_inspector1_comp_times(self):
+        return self.inspector_component_times['inspector1']
+    
+    def get_inspector22_comp_times(self):
+        return self.inspector_component_times['inspector22']
+    
+    def get_inspector23_comp_times(self):
+        return self.inspector_component_times['inspector23']
