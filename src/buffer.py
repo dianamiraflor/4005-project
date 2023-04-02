@@ -71,5 +71,6 @@ class Buffer():
     
     def get_queue_length_time(self):
         return self._QueueLengthTime
-
-       
+    
+    def get_buffer_id(self):
+        return self._id

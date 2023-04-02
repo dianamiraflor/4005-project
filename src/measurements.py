@@ -58,7 +58,9 @@ class Measurements():
         }
 
         ################################### USED FOR LITTLE'S LAW
+
         # ------ # Of Components in Workstation + Time
+        # Could be used to determine how often workstation is busy
         # [[number_of_components, time]]
         self.workstation_length_times = {
             'workstation1': [], 
@@ -72,6 +74,11 @@ class Measurements():
             'inspector22':[],
             'inspector23':[],
         }
+
+        # ------- Mean number of components at a point in time
+        self.comp_count = []
+
+        self.comp_count_buf_work = []
 
         #########################
 
@@ -189,14 +196,21 @@ class Measurements():
         self.workstation_length_times['workstation3'].append([length, time])
 
 
-    def add_inspector1_component_times(self, time):
-        self.inspector_component_times['inspector1'].append(time)
+    def add_inspector1_component_times(self, length, time):
+        self.inspector_component_times['inspector1'].append([length, time])
 
-    def add_inspector22_component_times(self, time):
-        self.inspector_component_times['inspector22'].append(time)
+    def add_inspector22_component_times(self, length, time):
+        self.inspector_component_times['inspector22'].append([length, time])
 
-    def add_inspector23_component_times(self, time):
-        self.inspector_component_times['inspector23'].append(time)
+    def add_inspector23_component_times(self, length, time):
+        self.inspector_component_times['inspector23'].append([length, time])
+
+
+    def add_comp_count(self, time, amount):
+        self.comp_count.append([time, amount])
+
+    def add_comp_count_buf_work(self, time, amount):
+        self.comp_count_buf_work.append([time, amount])
 
 # --------------------------------------------------------------
 
@@ -314,6 +328,9 @@ class Measurements():
     def get_workstation3_length_times(self):
         return self.workstation_length_times['workstation3']
     
+    def get_workstation_length_times(self):
+        return self.workstation_length_times
+    
 
     def get_inspector1_comp_times(self):
         return self.inspector_component_times['inspector1']
@@ -323,3 +340,13 @@ class Measurements():
     
     def get_inspector23_comp_times(self):
         return self.inspector_component_times['inspector23']
+    
+    def get_inspector_comp_times(self):
+        return self.inspector_component_times
+    
+
+    def get_comp_count(self):
+        return self.comp_count
+
+    def get_comp_count_buf_work(self):
+        return self.comp_count_buf_work

@@ -103,7 +103,7 @@ def inspector_1(env, facility, buffer1, buffer2, buffer4):
         measurements.add_comp_1_count() # STATS
         measurements.st_i1(service_time) # STATS
         measurements.it_i1(idle_end - idle_start)
-        measurements.add_inspector1_component_times(env.now - c1.get_start_time())
+        measurements.add_inspector1_component_times(1, env.now)
 
 
 
@@ -138,7 +138,7 @@ def inspector_2(env, facility, buffer3, buffer5):
             measurements.add_comp_2_count()
             measurements.it_i2(idle_time_done - idle_time)
             measurements.st_i2_2(service_time)
-            measurements.add_inspector23_component_times(env.now - c2.get_start_time())
+            measurements.add_inspector22_component_times(1, env.now)
             
         else:
             idle_time = env.now
@@ -160,7 +160,7 @@ def inspector_2(env, facility, buffer3, buffer5):
             measurements.add_comp_3_count()
             measurements.it_i2(idle_time_done - idle_time)
             measurements.st_i2_3(service_time)
-            measurements.add_inspector23_component_times(env.now - c3.get_start_time())
+            measurements.add_inspector23_component_times(1, env.now)
 
 def workstation_1(env, facility, buffer1):
     """
@@ -266,6 +266,7 @@ def workstation_3(env, facility, buffer4, buffer5):
         c1 = buffer4.get(env.now)
         c3 = buffer5.get(env.now)
         if c1 is not None and c3 is not None:
+            measurements.add_workstation3_length_times(2, env.now)
             
             print("Workstation 3 has started assembling product 3")
             idle_time_done = env.now
@@ -305,21 +306,23 @@ def get_chosen_buffer_at_capacity(facility, idle):
     free_c1w2 = False
     free_c1w3 = False
     chosen_buffer = C1W1
-    while (not free_c1w1) and (not free_c1w2) and (not free_c1w3):
-        current_c1w1_level = facility.c1w1.level
-        current_c1w2_level = facility.c1w2.level
-        current_c1w3_level = facility.c1w3.level
-        # Wait until one is full
-        if current_c1w1_level < buffer_capacity:
-            free_c1w1 = True
-        if current_c1w2_level < buffer_capacity:
-            chosen_buffer = C1W2
-            free_c1w2 = True
-        if current_c1w3_level < buffer_capacity:
-            chosen_buffer = C1W3
-            free_c1w3 = True
 
-    if idle:
+    if idle: 
+        # TODO: Goes into an infinite loop
+        while (not free_c1w1) and (not free_c1w2) and (not free_c1w3):
+            current_c1w1_level = facility.c1w1.level
+            current_c1w2_level = facility.c1w2.level
+            current_c1w3_level = facility.c1w3.level
+            # Wait until one is full
+            if current_c1w1_level < buffer_capacity:
+                free_c1w1 = True
+            if current_c1w2_level < buffer_capacity:
+                chosen_buffer = C1W2
+                free_c1w2 = True
+            if current_c1w3_level < buffer_capacity:
+                chosen_buffer = C1W3
+                free_c1w3 = True
+
         idle = False 
 
     return chosen_buffer, idle
@@ -356,10 +359,15 @@ if __name__ == '__main__':
     """
 
     seed_input = 114121598
+    gen_stats = False
 
     # simulation_duration = input('Please enter a simulation duration: ')
     # seed_input = input('Please enter a seed: ')
+    gen_stats = input('Would you like to generate stats for Littles Law? (Y/N)')
     
+    if gen_stats == 'Y':
+        gen_stats = True
+
     random_nums = rand_float_samples(300, seed = int(seed_input))
     generate_random_vars(random_nums)
 
@@ -423,7 +431,8 @@ if __name__ == '__main__':
 
     print(f'Other results are saved in the data directory.')
 
-
-
-    print(f'Statistic generated are in /stats/')
+    if gen_stats:
+        print(f'Generating stats for Little Law...')
+        generate_stats(measurements, SIMULATION_DURATION, buffers)
+        print(f'Stats have been generated and are in ./stats/')
 
