@@ -35,9 +35,9 @@ class Facility:
     def __init__(self, env):
 
         # Instantiate the containers for loading the components for inspectors
-        self.c1 = simpy.Container(env, capacity = c1_max, init = c1_initial)
-        self.c2 = simpy.Container(env, capacity = c2_max, init = c2_initial)
-        self.c3 = simpy.Container(env, capacity = c3_max, init = c3_initial)
+        # self.c1 = simpy.Container(env, capacity = c1_max, init = c1_initial)
+        # self.c2 = simpy.Container(env, capacity = c2_max, init = c2_initial)
+        # self.c3 = simpy.Container(env, capacity = c3_max, init = c3_initial)
 
         # Instantiate the containers (buffers) for each workstation
         self.c1w1 = simpy.Container(env, capacity = buffer_capacity)
@@ -46,7 +46,8 @@ class Facility:
         self.c1w3 = simpy.Container(env, capacity = buffer_capacity)
         self.c3w3 = simpy.Container(env, capacity = buffer_capacity)
 
-def inspector_1(env, facility, buffer1, buffer2, buffer4):
+
+def inspector_1(env, facility, buffer1, buffer2, buffer4, c1_buffers):
     """
     Inspector 1 process.
     This process will loop for the entirety of the simulation duration.
@@ -78,7 +79,11 @@ def inspector_1(env, facility, buffer1, buffer2, buffer4):
             idle = True
             idle_start = env.now
             print("Inspector 1 has been blocked (all buffers are at max capacity) and is waiting for an available buffer")
-            buffer, idle = get_chosen_buffer_at_capacity(facility)
+            
+            # Try finding a free buffer
+            # TODO: Might be broken
+            find_free_buffer(facility, idle)
+
             idle_end = env.now
 
         # Case 2: All buffers are not at max capacity -> there is always an available buffer to place component 1 in
@@ -119,20 +124,19 @@ def inspector_2(env, facility, buffer3, buffer5):
         random_component = random.randint(2,3)
 
         if random_component == 2:
-            idle_time = env.now
 
             c2 = Component(2)
             c2.set_start_time(env.now)
 
-            yield facility.c2.get(1)
             print("Inspector 2 has started inspecting component 2")
-            idle_time_done = env.now
             service_time = st.get_random_i2_2_st()
             yield env.timeout(service_time)
             print("Inspector 2 service time on C2: " + str(service_time) + " minutes")
+            idle_time = env.now
             yield facility.c2w2.put(1) # Will be blocked until there's space in this buffer
             buffer3.put(c2, env.now)
             print("Inspector 2 has finished inspecting component 2 and has placed it in C2W2")
+            idle_time_done = env.now
 
             # STATS
             measurements.add_comp_2_count()
@@ -141,19 +145,18 @@ def inspector_2(env, facility, buffer3, buffer5):
             measurements.add_inspector22_component_times(1, env.now)
             
         else:
-            idle_time = env.now
 
             c3 = Component(3)
             c3.set_start_time(env.now)
 
-            yield facility.c3.get(1)
             print("Inspector 2 has started inspecting component 3")
-            idle_time_done = env.now
             service_time = st.get_random_i2_3_st()
             yield env.timeout(service_time)
             print("Inspector 2 service time on C3: " + str(service_time) + " minutes")
+            idle_time = env.now
             yield facility.c3w3.put(1) # Will be blocked until there's space in this buffer
             buffer5.put(c3, env.now)
+            idle_time_done = env.now
             print("Inspector 2 has finished inspecting component 3 and has placed it in C3W3")
 
             # STATS
@@ -210,8 +213,13 @@ def workstation_2(env, facility, buffer2, buffer3):
 
         print("Workstation 2 is waiting for product 1 and 2...")
 
-        yield facility.c1w2.get(1) or facility.c2w2.get(1) # Waits until one is available
-        measurements.add_workstation2_length_times(1, env.now)
+        while True:
+            if facility.c1w2.level > 0:
+                measurements.add_workstation2_length_times(1, env.now)
+                break
+            if facility.c2w2.level > 0:
+                measurements.add_workstation2_length_times(1, env.now)
+                break
 
         yield facility.c1w2.get(1) and facility.c2w2.get(1) # Wait until c1 and c2 components are both available
         c1 = buffer2.get(env.now)
@@ -259,8 +267,13 @@ def workstation_3(env, facility, buffer4, buffer5):
 
         print("Workstation 3 is waiting for product 1 and 3...")
 
-        yield facility.c1w3.get(1) or facility.c3w3.get(1) # Waits until one is available
-        measurements.add_workstation3_length_times(1, env.now)
+        while True:
+            if facility.c1w3.level > 0:
+                measurements.add_workstation3_length_times(1, env.now)
+                break
+            if facility.c3w3.level > 0:
+                measurements.add_workstation3_length_times(1, env.now)
+                break
 
         yield facility.c1w3.get(1) and facility.c3w3.get(1) # Wait until c1 and c3 components are both available
         c1 = buffer4.get(env.now)
@@ -288,13 +301,7 @@ def workstation_3(env, facility, buffer4, buffer5):
             measurements.add_comp_1_time_buf_work(c1.get_buffer_workstation_time())
             measurements.add_comp_3_time_buf_work(c3.get_buffer_workstation_time())
 
-
-def measure_num_components(env, facility):
-    """
-    This process monitors the number of components every clock tick 
-    """
-
-def get_chosen_buffer_at_capacity(facility, idle):
+def find_free_buffer(facility, idle):
     """
     A method that will make inspector 1 block when all of its buffers for component 1 are at full capacity.
     Inspector 1 will then remain in a loop until a buffer has space.
@@ -302,30 +309,29 @@ def get_chosen_buffer_at_capacity(facility, idle):
     """
     # If they are all full 
     # Block 
-    free_c1w1 = False
-    free_c1w2 = False
-    free_c1w3 = False
     chosen_buffer = C1W1
 
     if idle: 
         # TODO: Goes into an infinite loop
-        while (not free_c1w1) and (not free_c1w2) and (not free_c1w3):
-            current_c1w1_level = facility.c1w1.level
-            current_c1w2_level = facility.c1w2.level
-            current_c1w3_level = facility.c1w3.level
-            # Wait until one is full
-            if current_c1w1_level < buffer_capacity:
-                free_c1w1 = True
-            if current_c1w2_level < buffer_capacity:
+        while True:
+            if facility.c1w1.level < buffer_capacity:
+                idle = False
+                return chosen_buffer, False
+            
+            elif facility.c1w2.level < buffer_capacity:
                 chosen_buffer = C1W2
-                free_c1w2 = True
-            if current_c1w3_level < buffer_capacity:
+                idle = False
+                return chosen_buffer, idle
+
+            elif facility.c1w3.level < buffer_capacity:
                 chosen_buffer = C1W3
-                free_c1w3 = True
+                idle = False
+                return chosen_buffer, idle
 
-        idle = False 
+            else:
+                yield env.timeout(0.1)
 
-    return chosen_buffer, idle
+    return None
 
 def get_chosen_buffer(c1w1, c1w2, c1w3):
     """
