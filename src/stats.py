@@ -38,19 +38,22 @@ def facility_mean_num_components(buffers, inspector_component_times, workstation
 
     """
     list_of_sys = []
-    overall_mean = 0
-    total_time = 0
 
     for key in buffers:
-        list_of_sys.append(buffers[key])
+        for len_time in buffers[key]:
+            list_of_sys.append(len_time)
 
     for key in inspector_component_times:
-        list_of_sys.append(inspector_component_times[key])
+        for len_time in inspector_component_times[key]:
+            list_of_sys.append(len_time)
 
     for key in workstation_length_times:
-        list_of_sys.append(workstation_length_times[key])
+        for len_time in workstation_length_times[key]:
+            list_of_sys.append(len_time)
 
-    mean_component_facility = calculate_mean_components_system(list_of_sys, overall_mean, total_time)
+    list_to_text_file('data/', 'facility_time_comp.txt', list_of_sys)
+
+    mean_component_facility = calculate_mean_system_components(list_of_sys)
     
     return mean_component_facility
 
@@ -96,73 +99,95 @@ def workstations_mean_number_comps(buffers, workstation_length_times):
     
     """
     workstation1_sys = []
-    workstation1_sys.append(buffers['buffer1'])
-    workstation1_sys.append(workstation_length_times['workstation1'])
+    for len_time in buffers['buffer1']:
+        workstation1_sys.append(len_time)
+    for len_time in workstation_length_times['workstation1']:
+        workstation1_sys.append(len_time)
 
     workstation2_sys = []
-    workstation2_sys.append(buffers['buffer2']) 
-    workstation2_sys.append(buffers['buffer3']) 
-    workstation2_sys.append(workstation_length_times['workstation2'])
+    for len_time in buffers['buffer2']:
+        workstation2_sys.append(len_time)
+    for len_time in buffers['buffer3']:
+        workstation2_sys.append(len_time)
+    for len_time in workstation_length_times['workstation2']:
+        workstation2_sys.append(len_time)
 
     workstation3_sys = []
-    workstation3_sys.append(buffers['buffer4'])
-    workstation3_sys.append(buffers['buffer5'])
-    workstation3_sys.append(workstation_length_times['workstation3'])
+    for len_time in buffers['buffer4']:
+        workstation3_sys.append(len_time)
+    for len_time in buffers['buffer5']:
+        workstation3_sys.append(len_time)
+    for len_time in workstation_length_times['workstation3']:
+        workstation3_sys.append(len_time)
 
-    overall_mean_w1 = 0
-    total_time_w1 = 0
-
-    overall_mean_w2 = 0
-    total_time_w2 = 0
-
-    overall_mean_w3 = 0
-    total_time_w3 = 0
-
-    mean_component_w1 = calculate_mean_components_system(workstation1_sys, overall_mean_w1, total_time_w1)
-    mean_component_w2 = calculate_mean_components_system(workstation2_sys, overall_mean_w2, total_time_w2)
-    mean_component_w3 = calculate_mean_components_system(workstation3_sys, overall_mean_w3, total_time_w3)
+    mean_component_w1 = calculate_mean_system_components(workstation1_sys)
+    mean_component_w2 = calculate_mean_system_components(workstation2_sys)
+    mean_component_w3 = calculate_mean_system_components(workstation3_sys)
 
     return mean_component_w1, mean_component_w2, mean_component_w3
 
-def calculate_buffer_occupancy(buffers, sim_dur):
+def calculate_all_buffers_occupancy(buffers):
+    b1 = calculate_buffer_occupancy(buffers['buffer1'])
+    b2 = calculate_buffer_occupancy(buffers['buffer2'])
+    b3 = calculate_buffer_occupancy(buffers['buffer3'])
+    b4 = calculate_buffer_occupancy(buffers['buffer4'])
+    b5 = calculate_buffer_occupancy(buffers['buffer5'])
+
+    return b1, b2, b3, b4, b5
+
+def calculate_buffer_occupancy(buffer):
  
-    avg_buff1_occ = buffers['buffer1'] / sim_dur
-    avg_buff2_occ = buffers['buffer2'] / sim_dur
-    avg_buff3_occ = buffers['buffer3'] / sim_dur
-    avg_buff4_occ = buffers['buffer4'] / sim_dur
-    avg_buff5_occ = buffers['buffer5'] / sim_dur
+    total_time = buffer[-1][1] - buffer[0][1]
+    total_components = 0
 
-    return avg_buff1_occ, avg_buff2_occ, avg_buff3_occ, avg_buff4_occ, avg_buff5_occ
+    for i in range(len(buffer) - 1):
+        current_time = buffer[i][1]
+        next_time = buffer[i+1][1]
+        current_components = buffer[i][0]
+        next_components = buffer[i+1][0]
+        
+        time_diff = next_time - current_time
+        avg_components = (current_components + next_components) / 2.0
+        
+        total_components += avg_components * time_diff
+    average_occupancy = total_components / total_time
+    
+    return average_occupancy
 
-
-def calculate_mean_components_system(system_list, overall_mean, total_time):
+def calculate_mean_system_components(system_list):
     """
-    TODO: Work on this.
+    TODO: Work on this. To get the overall number of components in the system, 
+    do we combine the step functions together? 
 
     Helper function to help calculate the mean number of components
     system_list : A list of queues and service centers in the 'system'
+
+     the time average is simply a summation of all steps multiplied by 
+     the duration of each step and then divided by the total time
     """
+    # Sort the list by time
+    system_list.sort(key=lambda x: x[1])
 
-    for sys in system_list:
-        # Calculate the total time elapsed between the first and last recorded time
-        time_elapsed = sys[-1][1] - sys[0][1]
+    # Initialize variables for time and total components
+    total_time = 0.0
+    total_components = 0
 
-        # Calculate the sum of (number of components * time) for each recorded time
-        component_time_sum = 0
-        for i in range(len(sys) - 1):
-            num_components = sys[i][0]
-            time_diff = sys[i+1][1] - sys[i][1]
-            component_time_sum += num_components * time_diff
+    # Loop through the list of buffer occupancy and accumulate the time-weighted total
+    for i in range(len(system_list) - 1):
+        components1, time1 = system_list[i]
+        components2, time2 = system_list[i + 1]
+        duration = time2 - time1
+        total_time += duration
+        total_components += components1 * duration
 
-        # Calculate the mean number of components for this data structure
-        mean_components = component_time_sum / time_elapsed
+    # If there are no buffer occupancy records, return 0
+    if total_time == 0.0:
+        return 0.0
 
-        # Update the overall mean and total time
-        overall_mean += mean_components * time_elapsed
-        total_time += time_elapsed
+    # Calculate the time-weighted average
+    mean_components = total_components / total_time
 
-    overall_mean /= total_time
-    return overall_mean
+    return mean_components
 
 
 def generate_stats(measurements: Measurements, sim_dur):
@@ -178,7 +203,7 @@ def generate_stats(measurements: Measurements, sim_dur):
     w1_st_qt, w2_st_qt, w3_st_qt = workstations_mean_service_queue_time(measurements.get_component_1_buf_work(), measurements.get_component_2_buf_work(), measurements.get_component_3_buf_work())
     w1_mean_comp, w2_mean_comp, w3_mean_comp = workstations_mean_number_comps(measurements.get_buffer_comp_times(), measurements.get_workstation_length_times())
 
-    buff1_occ, buff2_occ, buff3_occ, buff4_occ, buff5_occ = calculate_buffer_occupancy(measurements.get_buff_occupancies(), sim_dur)
+    buff1_occ, buff2_occ, buff3_occ, buff4_occ, buff5_occ = calculate_all_buffers_occupancy(measurements.get_buffer_comp_times())
 
     lines = [
         'Here are the statistics for the simulation: ',
