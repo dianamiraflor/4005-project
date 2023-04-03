@@ -8,6 +8,8 @@ Carleton University
 
 from pathlib import Path
 
+seed = 114121598
+
 data_directory = Path("data/rv/")
 buffer_capacity = 2
 C1W1 = 'C1W1'
@@ -27,9 +29,9 @@ c2_max = 100000000000000
 c3_max = 100000000000000
 
 # ------------ Output directories for a simulation
-st_dir = 'st_sim_dur_' + str(SIMULATION_DURATION)
-it_dir = 'it_sim_dur_' + str(SIMULATION_DURATION)
-comp_dir = 'comp_time_sim_dur_' + str(SIMULATION_DURATION)
+st_dir = 'st_sim_dur_' + str(SIMULATION_DURATION) + '/'
+it_dir = 'it_sim_dur_' + str(SIMULATION_DURATION) + '/'
+comp_dir = 'comp_time_sim_dur_' + str(SIMULATION_DURATION) + '/'
 
 
 #------------- RNG & RVG TEST Config

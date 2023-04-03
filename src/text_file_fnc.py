@@ -1,11 +1,13 @@
 import os
+from pathlib import Path
 
 def list_to_text_file(directory, filename, list):
+    dir = Path(directory)
     
-    if not os.path.exists(directory):
-        os.makedirs(directory)
+    if not os.path.exists(dir):
+        os.makedirs(dir)
     
-    file = open(directory + filename, 'w')
+    file = open(dir / filename, 'w')
     for x in list:
         file.write(str(x)+"\n")
 

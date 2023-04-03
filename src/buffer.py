@@ -44,7 +44,7 @@ class Buffer():
             self._total_count += 1 
             self._Queue.append(comp)
             self._QueueLengthTime.append([self._buffer_length, time])
-            comp.set_queue_time(time)
+            comp.set_queue_start_time(time)
             return True
 
 

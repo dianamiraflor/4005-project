@@ -1,3 +1,5 @@
+from constants import buffer_capacity
+
 class Measurements():
 
     def __init__(self):
@@ -31,30 +33,39 @@ class Measurements():
 
         # ------ Component Count - Counts the number of components that entered the system
         self.comp_count_facility = {
-            'comp1':0,
-            'comp2':0,
-            'comp3':0
+            'component1':0,
+            'component2':0,
+            'component3':0
         }
 
         # ------ Inspected Component Count
         self.comp_count_inspected = {
-            'comp1':0,
-            'comp2':0,
-            'comp3':0
+            'component1':0,
+            'component2':0,
+            'component3':0
         }
 
         # ------ Component Times in 'System' - Facility
         self.comp_times_facility = {
-            'comp1':[],
-            'comp2':[],
-            'comp3':[]
+            'component1':[],
+            'component2':[],
+            'component3':[]
         }
 
         # ------ Component Times in Buffer + Workstation
         self.comp_times_buff_work = {
-            'comp1':[],
-            'comp2':[],
-            'comp3':[]
+            'component1':[],
+            'component2':[],
+            'component3':[]
+        }
+
+        # ------ Buffer occupancies 
+        self.buffer_occupancies = {
+            'buffer1': 0,
+            'buffer2': 0,
+            'buffer3': 0,
+            'buffer4': 0,
+            'buffer5': 0
         }
 
         ################################### USED FOR LITTLE'S LAW
@@ -73,6 +84,22 @@ class Measurements():
             'inspector1':[],
             'inspector22':[],
             'inspector23':[],
+        }
+
+        self.buffer_component_times = {
+            'buffer1': [],
+            'buffer2': [],
+            'buffer3': [],
+            'buffer4': [],
+            'buffer5': []
+        }
+
+        self.buffer_total_count = {
+            'buffer1': 0,
+            'buffer2': 0,
+            'buffer3': 0,
+            'buffer4': 0,
+            'buffer5': 0
         }
 
         # ------- Mean number of components at a point in time
@@ -159,31 +186,31 @@ class Measurements():
     def add_comp_3_time(self, time):
         self.comp_times_facility['component3'].append(time)
 
+    
+    def avg_buff1_occ(self, length):
+        self.buffer_occupancies['buffer1'] += (length / buffer_capacity)
+
+    def avg_buff2_occ(self, length):
+        self.buffer_occupancies['buffer2'] += (length / buffer_capacity)
+
+    def avg_buff3_occ(self, length):
+        self.buffer_occupancies['buffer3'] += (length / buffer_capacity)
+
+    def avg_buff4_occ(self, length):
+        self.buffer_occupancies['buffer4'] += (length / buffer_capacity)
+
+    def avg_buff5_occ(self, length):
+        self.buffer_occupancies['buffer5'] += (length / buffer_capacity)
+
 
     def add_comp_1_time_buf_work(self, time):
         self.comp_times_buff_work['component1'].append(time)
 
     def add_comp_2_time_buf_work(self, time):
-        self.comp_times_buff_work['component1'].append(time)
+        self.comp_times_buff_work['component2'].append(time)
 
     def add_comp_3_time_buf_work(self, time):
-        self.comp_times_buff_work['component1'].append(time)
-
-
-    def add_buffer1_length_times(self, length, time):
-        self.buffer_length_times['buffer1'].append([length, time])
-
-    def add_buffer2_length_times(self, length, time):
-        self.buffer_length_times['buffer2'].append([length, time])
-
-    def add_buffer3_length_times(self, length, time):
-        self.buffer_length_times['buffer3'].append([length, time])
-
-    def add_buffer4_length_times(self, length, time):
-        self.buffer_length_times['buffer4'].append([length, time])
-
-    def add_buffer5_length_times(self, length, time):
-        self.buffer_length_times['buffer5'].append([length, time])
+        self.comp_times_buff_work['component3'].append(time)
 
 
     def add_workstation1_length_times(self, length, time):
@@ -204,6 +231,38 @@ class Measurements():
 
     def add_inspector23_component_times(self, length, time):
         self.inspector_component_times['inspector23'].append([length, time])
+
+
+    def add_buffer1_comp_time(self, length, time):
+        self.buffer_component_times['buffer1'].append([length, time])
+
+    def add_buffer2_comp_time(self, length, time):
+        self.buffer_component_times['buffer2'].append([length, time])
+
+    def add_buffer3_comp_time(self, length, time):
+        self.buffer_component_times['buffer3'].append([length, time])
+
+    def add_buffer4_comp_time(self, length, time):
+        self.buffer_component_times['buffer4'].append([length, time])
+
+    def add_buffer5_comp_time(self, length, time):
+        self.buffer_component_times['buffer5'].append([length, time])\
+        
+
+    def add_buffer1_total_count(self):
+        self.buffer_total_count['buffer1'] += 1
+
+    def add_buffer2_total_count(self):
+        self.buffer_total_count['buffer2'] += 1
+
+    def add_buffer3_total_count(self):
+        self.buffer_total_count['buffer3'] += 1
+
+    def add_buffer4_total_count(self):
+        self.buffer_total_count['buffer4'] += 1
+
+    def add_buffer5_total_count(self):
+        self.buffer_total_count['buffer5'] += 1
 
 
     def add_comp_count(self, time, amount):
@@ -292,6 +351,9 @@ class Measurements():
     def get_component_3_time(self):
         return self.comp_times_facility['component3']
     
+    def get_component_times(self):
+        return self.comp_times_facility
+    
     
     def get_component_1_buf_work(self):
         return self.comp_times_buff_work['component1']
@@ -301,22 +363,6 @@ class Measurements():
     
     def get_component_3_buf_work(self):
         return self.comp_times_buff_work['component3']
-    
-
-    def get_buffer1_length_times(self):
-        return self.buffer_length_times['buffer1']
-    
-    def get_buffer2_length_times(self):
-        return self.buffer_length_times['buffer2']
-    
-    def get_buffer3_length_times(self):
-        return self.buffer_length_times['buffer3']
-    
-    def get_buffer4_length_times(self):
-        return self.buffer_length_times['buffer4']
-    
-    def get_buffer5_length_times(self):
-        return self.buffer_length_times['buffer5']
     
     
     def get_workstation1_length_times(self):
@@ -345,8 +391,34 @@ class Measurements():
         return self.inspector_component_times
     
 
+    def get_buffer1_comp_time(self):
+        return self.buffer_component_times['buffer1']
+
+    def get_buffer2_comp_time(self):
+        return self.buffer_component_times['buffer2']
+
+    def get_buffer3_comp_time(self):
+        return self.buffer_component_times['buffer3']
+
+    def get_buffer4_comp_time(self):
+        return self.buffer_component_times['buffer4']
+
+    def get_buffer5_comp_time(self):
+        return self.buffer_component_times['buffer5']
+    
+
+    def get_buffer_total_count(self):
+        return self.buffer_total_count
+    
     def get_comp_count(self):
         return self.comp_count
 
     def get_comp_count_buf_work(self):
         return self.comp_count_buf_work
+    
+    def get_buffer_comp_times(self):
+        return self.buffer_component_times
+    
+    def get_buff_occupancies(self):
+        return self.buffer_occupancies
+        

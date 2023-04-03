@@ -7,7 +7,8 @@ also dependent on the dataset
 import math
 import rng
 import text_file_fnc
-from constants import num_samples
+from constants import num_samples, seed
+from rng import rand_float_samples
 
 def get_inverse_cdf_exp_val(lamd, rand):
     return -1 * ((1/lamd) * math.log(1-rand)) # math.log calculates ln 
@@ -36,10 +37,13 @@ def generate_random_vars(random_numbers):
     inspector22_var_seq = generate_random_variate_list(random_numbers, inspector22_lam)
     inspector23_var_seq = generate_random_variate_list(random_numbers, inspector23_lam)
 
-    text_file_fnc.list_to_text_file('./data/rv/', 'random_variates_w1.txt', workstation1_var_seq)
-    text_file_fnc.list_to_text_file('./data/rv/', 'random_variates_w2.txt', workstation2_var_seq)
-    text_file_fnc.list_to_text_file('./data/rv/', 'random_variates_w3.txt', workstation3_var_seq)
-    text_file_fnc.list_to_text_file('./data/rv/', 'random_variates_i1.txt', inspector1_var_seq)
-    text_file_fnc.list_to_text_file('./data/rv/', 'random_variates_i22.txt', inspector22_var_seq)
-    text_file_fnc.list_to_text_file('./data/rv/', 'random_variates_i23.txt', inspector23_var_seq)
+    text_file_fnc.list_to_text_file('data/rv/', 'random_variates_w1.txt', workstation1_var_seq)
+    text_file_fnc.list_to_text_file('data/rv/', 'random_variates_w2.txt', workstation2_var_seq)
+    text_file_fnc.list_to_text_file('data/rv/', 'random_variates_w3.txt', workstation3_var_seq)
+    text_file_fnc.list_to_text_file('data/rv/', 'random_variates_i1.txt', inspector1_var_seq)
+    text_file_fnc.list_to_text_file('data/rv/', 'random_variates_i22.txt', inspector22_var_seq)
+    text_file_fnc.list_to_text_file('data/rv/', 'random_variates_i23.txt', inspector23_var_seq)
 
+if __name__ == '__main__':
+    random_nums = rand_float_samples(300, seed = int(seed))
+    generate_random_vars(random_nums)
