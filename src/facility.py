@@ -94,12 +94,22 @@ if __name__ == '__main__':
     text_file_fnc.list_to_text_file('data/buffer_len_times/', 'buffer4.txt', measurements.get_buffer4_comp_time())
     text_file_fnc.list_to_text_file('data/buffer_len_times/', 'buffer5.txt', measurements.get_buffer5_comp_time())
 
+    text_file_fnc.list_to_text_file('data/comp_queue_times/', 'facility.txt', measurements.get_queue_times()['facility'])
+    text_file_fnc.list_to_text_file('data/comp_queue_times/', 'workstation1.txt', measurements.get_queue_times()['workstation1'])
+    text_file_fnc.list_to_text_file('data/comp_queue_times/', 'workstation2.txt', measurements.get_queue_times()['workstation2'])
+    text_file_fnc.list_to_text_file('data/comp_queue_times/', 'workstation3.txt', measurements.get_queue_times()['workstation3'])
+
     total = facility.get_total_component_num()
     measurements.set_total_comp_facility(total)
 
     measurements.set_total_comp_buff_work('workstation1', buff_work1.get_total_component_num())
     measurements.set_total_comp_buff_work('workstation2', buff_work2.get_total_component_num())
     measurements.set_total_comp_buff_work('workstation3', buff_work3.get_total_component_num())
+
+    measurements.set_components_departed(facility.get_total_components_departed())
+    measurements.set_components_departed_buff_work('workstation1', buff_work1.get_total_components_departed())
+    measurements.set_components_departed_buff_work('workstation2', buff_work2.get_total_components_departed())
+    measurements.set_components_departed_buff_work('workstation3', buff_work3.get_total_components_departed())
 
     print(f'Other results are saved in the data directory.')
     if gen_stats:

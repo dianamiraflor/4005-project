@@ -185,6 +185,7 @@ class Inspector2(object):
 
                 c2 = Component(2)
                 self.facility.add_current_comp(1)
+                self.facility.add_total_components()
                 self.measurements.update_comp_aggregate_facility(self.env.now, self.facility.get_current_comp())
                 c2.set_start_time(self.env.now)
 
@@ -213,6 +214,7 @@ class Inspector2(object):
 
                 c3 = Component(3)
                 self.facility.add_current_comp(1)
+                self.facility.add_total_components()
                 self.measurements.update_comp_aggregate_facility(self.env.now, self.facility.get_current_comp(), )
                 c3.set_start_time(self.env.now)
 

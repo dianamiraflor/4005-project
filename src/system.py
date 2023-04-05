@@ -3,6 +3,7 @@ class System():
     def __init__(self):
         self.current_component_num = 0
         self.total_component_num = 0 
+        self.total_component_departed = 0
 
     def add_current_comp(self, amount):
         self.current_component_num += amount
@@ -18,8 +19,14 @@ class System():
     def add_total_components(self):
         self.total_component_num += 1
 
+    def add_total_components_departed(self, amount):
+        self.total_component_departed += amount
+
     def get_current_comp(self):
         return self.current_component_num
     
     def get_total_component_num(self):
         return self.total_component_num
+    
+    def get_total_components_departed(self):
+        return self.total_component_departed

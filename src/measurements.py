@@ -88,14 +88,16 @@ class Measurements():
             'inspector23':[],
         }
 
+        # ------ Records the number of components in a buffer at a specific time
         self.buffer_component_times = {
             'buffer1': [],
             'buffer2': [],
             'buffer3': [],
             'buffer4': [],
             'buffer5': []
-        }
+        }  
 
+        # ------ Counts the total number of components that have entered the buffer
         self.buffer_total_count = {
             'buffer1': 0,
             'buffer2': 0,
@@ -112,10 +114,30 @@ class Measurements():
             'workstation2': [],
             'workstation3': []
         } # [num components, time]
+    
 
+        # ------- Counts the total amount of components that have entered the system
+        # Facility
         self.total_facility_count = 0
 
+
+        # Buffer + Workstation
         self.total_buff_work_count = {
+            'workstation1': 0, 
+            'workstation2': 0,
+            'workstation3': 0
+        }
+
+        self.queue_times = {
+            'facility': [],
+            'workstation1': [],
+            'workstation2': [],
+            'workstation3': [],
+        }
+
+        self.total_comp_departed = 0
+
+        self.total_comp_departed_buff_work = {
             'workstation1': 0, 
             'workstation2': 0,
             'workstation3': 0
@@ -282,6 +304,19 @@ class Measurements():
     def set_total_comp_buff_work(self, workstation, amount):
         self.total_buff_work_count[workstation] = amount
 
+
+    def add_queue_time(self, key, time):
+        self.queue_times[key].append(time)
+
+
+    def set_components_departed(self, amount):
+        self.total_comp_departed = amount
+
+    def set_components_departed_buff_work(self, key, amount):
+        self.total_comp_departed_buff_work[key] = amount
+
+
+
 # --------------------------------------------------------------
 
     def get_service_times(self):
@@ -431,3 +466,15 @@ class Measurements():
     
     def get_total_buff_work_count(self):
         return self.total_buff_work_count
+    
+
+    def get_queue_times(self):
+        return self.queue_times
+    
+
+    def get_total_comp_departed(self):
+        return self.total_comp_departed
+
+
+    def get_total_comp_departed_buff_work(self):
+        return self.total_comp_departed_buff_work

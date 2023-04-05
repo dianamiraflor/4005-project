@@ -44,7 +44,7 @@ class Component():
 
 
     def set_queue_time(self): 
-        self._bbuffer_time = self._assembly_time - self._queue_start
+        self._buffer_time = self._assembly_time - self._queue_start
 
     def set_time_spent(self):
         self._time_spent = self._end_time - self._start_time
@@ -71,3 +71,6 @@ class Component():
     
     def get_start_time(self):
         return self._start_time
+    
+    def get_queue_time(self):
+        return self._buffer_time

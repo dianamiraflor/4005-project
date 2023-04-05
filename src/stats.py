@@ -156,7 +156,13 @@ def calculate_average_service_times(recorded_service_times):
 
     return inspector1_mean, inspector22_mean, inspector23_mean, workstation1_mean, workstation2_mean, workstation3_mean
 
+def calculate_average_queue_times(queue_times):
+    facility_mean = statistics.mean(queue_times['facility'])
+    w1_mean = statistics.mean(queue_times['workstation1'])
+    w2_mean = statistics.mean(queue_times['workstation2'])
+    w3_mean = statistics.mean(queue_times['workstation3'])
 
+    return facility_mean, w1_mean, w2_mean, w3_mean
 
 
 def generate_stats(measurements: Measurements, sim_dur):
@@ -177,6 +183,12 @@ def generate_stats(measurements: Measurements, sim_dur):
 
     i1_st_mean, i22_st_mean, i23_st_mean, w1_mean, w2_mean, w3_mean = calculate_average_service_times(measurements.get_service_times())
 
+    facility_departing_rate = facility_input_rate(measurements.get_total_comp_departed(), sim_dur)
+
+    w1_dep_rate, w2_dep_rate, w3_dep_rate = workstations_input_rate(measurements.get_total_comp_departed_buff_work(), sim_dur)
+
+    avg_queue_facility, avg_queue_w1, avg_queue_w2, avg_queue_w3  = calculate_average_queue_times(measurements.get_queue_times())
+
     lines = [
         'Here are the statistics for the simulation: ',
         'SIMULATION DURATION: {}'.format(sim_dur),
@@ -185,19 +197,27 @@ def generate_stats(measurements: Measurements, sim_dur):
         'Facility input rate: {0:.3f}' .format(facility_thru),
         'Mean delay of components: {0:.3f}'.format(mean_component_delays),
         'Mean number of components in facility: {0:.3f}'.format(facility_mean_components),
+        'Departing rate: {0:.3f}'.format(facility_departing_rate),
+        'Average queueing time: {0:.3f}'.format(avg_queue_facility),
         '--------------------------------------------------------',
         'SYSTEM: Buffer + Workstation',
         'Workstation 1 input rate: {0:.3f}'.format(w1_thru),
         'Workstation 1 QT + ST: {0:.3f}'.format(w1_st_qt),
         'Workstation 1 Mean Number of Components in System: {0:.3f}'.format(w1_mean_comp),
+        'Workstation 1 departing rate: {0:.3f}'.format(w1_dep_rate),
+        'Workstation 1 average queueing time: {0:.3f}'.format(avg_queue_w1),
         '\n',
         'Workstation 2 input rate: {0:.3f}'.format(w2_thru),
         'Workstation 2 QT + ST: {0:.3f}'.format(w2_st_qt),
         'Workstation 2 Mean Number of Components in System: {0:.3f}'.format(w2_mean_comp),
+        'Workstation 2 departing rate: {0:.3f}'.format(w2_dep_rate),
+        'Workstation 2 average queueing time: {0:.3f}'.format(avg_queue_w2),
         '\n',
         'Workstation 3 input rate: {0:.3f}'.format(w3_thru),
         'Workstation 3 QT + ST: {0:.3f}'.format(w3_st_qt),
         'Workstation 3 Mean Number of Components in System: {0:.3f}'.format(w3_mean_comp),
+        'Workstation 3 departing rate: {0:.3f}'.format(w3_dep_rate),
+        'Workstation 3 average queueing time: {0:.3f}'.format(avg_queue_w3),
         '--------------------------------------------------------',
         'AVERAGE BUFFER OCCUPANCIES',
         'Buffer 1: {0:.3f}'.format(buff1_occ),
@@ -213,6 +233,10 @@ def generate_stats(measurements: Measurements, sim_dur):
         'Workstation 1 : {0:.3f}'.format(w1_mean),
         'Workstation 2 : {0:.3f}'.format(w2_mean),
         'Workstation 3 : {0:.3f}'.format(w3_mean),
+        '--------------------------------------------------------',
+        'TOTAL NUMBER OF COMPONENTS ENTERED : {0:.3f}'.format(measurements.get_total_facility_count()),
+        'TOTAL NUMBER OF COMPONENTS DEPARTED : {0:.3f}'.format(measurements.get_total_comp_departed()),
+        '--------------------------------------------------------'
     ]
 
     list_to_text_file('stats/', 'sim_' + str(sim_dur) + '_stats.txt', lines)
