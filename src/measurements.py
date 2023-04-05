@@ -45,6 +45,18 @@ class Measurements():
             'component3':0
         }
 
+
+        # ------ Buffer occupancies 
+        self.buffer_occupancies = {
+            'buffer1': 0,
+            'buffer2': 0,
+            'buffer3': 0,
+            'buffer4': 0,
+            'buffer5': 0
+        }
+
+        ################################### USED FOR LITTLE'S LAW
+
         # ------ Component Times in 'System' - Facility
         self.comp_times_facility = {
             'component1':[],
@@ -59,20 +71,10 @@ class Measurements():
             'component3':[]
         }
 
-        # ------ Buffer occupancies 
-        self.buffer_occupancies = {
-            'buffer1': 0,
-            'buffer2': 0,
-            'buffer3': 0,
-            'buffer4': 0,
-            'buffer5': 0
-        }
-
-        ################################### USED FOR LITTLE'S LAW
-
         # ------ # Of Components in Workstation + Time
         # Could be used to determine how often workstation is busy
         # [[number_of_components, time]]
+
         self.workstation_length_times = {
             'workstation1': [], 
             'workstation2': [],
@@ -103,9 +105,21 @@ class Measurements():
         }
 
         # ------- Mean number of components at a point in time
-        self.comp_count = []
+        self.comp_aggreg_facility = [] # [num components, time]
 
-        self.comp_count_buf_work = []
+        self.comp_aggreg_buff_work = {
+            'workstation1': [], 
+            'workstation2': [],
+            'workstation3': []
+        } # [num components, time]
+
+        self.total_facility_count = 0
+
+        self.total_buff_work_count = {
+            'workstation1': 0, 
+            'workstation2': 0,
+            'workstation3': 0
+        }
 
         #########################
 
@@ -214,39 +228,29 @@ class Measurements():
 
 
     def add_workstation1_length_times(self, length, time):
-        self.workstation_length_times['workstation1'].append([length, time])
+        self.workstation_length_times['workstation1'].append([time, length])
 
     def add_workstation2_length_times(self, length, time):
-        self.workstation_length_times['workstation2'].append([length, time])
+        self.workstation_length_times['workstation2'].append([time, length])
 
     def add_workstation3_length_times(self, length, time):
-        self.workstation_length_times['workstation3'].append([length, time])
-
-
-    def add_inspector1_component_times(self, length, time):
-        self.inspector_component_times['inspector1'].append([length, time])
-
-    def add_inspector22_component_times(self, length, time):
-        self.inspector_component_times['inspector22'].append([length, time])
-
-    def add_inspector23_component_times(self, length, time):
-        self.inspector_component_times['inspector23'].append([length, time])
+        self.workstation_length_times['workstation3'].append([time, length])
 
 
     def add_buffer1_comp_time(self, length, time):
-        self.buffer_component_times['buffer1'].append([length, time])
+        self.buffer_component_times['buffer1'].append([time, length])
 
     def add_buffer2_comp_time(self, length, time):
-        self.buffer_component_times['buffer2'].append([length, time])
+        self.buffer_component_times['buffer2'].append([time, length])
 
     def add_buffer3_comp_time(self, length, time):
-        self.buffer_component_times['buffer3'].append([length, time])
+        self.buffer_component_times['buffer3'].append([time, length])
 
     def add_buffer4_comp_time(self, length, time):
-        self.buffer_component_times['buffer4'].append([length, time])
+        self.buffer_component_times['buffer4'].append([time, length])
 
     def add_buffer5_comp_time(self, length, time):
-        self.buffer_component_times['buffer5'].append([length, time])\
+        self.buffer_component_times['buffer5'].append([time, length])
         
 
     def add_buffer1_total_count(self):
@@ -265,13 +269,23 @@ class Measurements():
         self.buffer_total_count['buffer5'] += 1
 
 
-    def add_comp_count(self, time, amount):
-        self.comp_count.append([time, amount])
+    def update_comp_aggregate_facility(self, size, time):
+        self.comp_aggreg_facility.append([time, size])
+        
+    def update_comp_aggregate_buff_work(self, workstation, size, time):
+        self.comp_aggreg_buff_work[workstation].append([time, size])
 
-    def add_comp_count_buf_work(self, time, amount):
-        self.comp_count_buf_work.append([time, amount])
+
+    def set_total_comp_facility(self, amount):
+        self.total_facility_count = amount
+
+    def set_total_comp_buff_work(self, workstation, amount):
+        self.total_buff_work_count[workstation] = amount
 
 # --------------------------------------------------------------
+
+    def get_service_times(self):
+        return self.service_times
 
 
     def get_list_st_i1(self):
@@ -378,19 +392,6 @@ class Measurements():
         return self.workstation_length_times
     
 
-    def get_inspector1_comp_times(self):
-        return self.inspector_component_times['inspector1']
-    
-    def get_inspector22_comp_times(self):
-        return self.inspector_component_times['inspector22']
-    
-    def get_inspector23_comp_times(self):
-        return self.inspector_component_times['inspector23']
-    
-    def get_inspector_comp_times(self):
-        return self.inspector_component_times
-    
-
     def get_buffer1_comp_time(self):
         return self.buffer_component_times['buffer1']
 
@@ -410,11 +411,6 @@ class Measurements():
     def get_buffer_total_count(self):
         return self.buffer_total_count
     
-    def get_comp_count(self):
-        return self.comp_count
-
-    def get_comp_count_buf_work(self):
-        return self.comp_count_buf_work
     
     def get_buffer_comp_times(self):
         return self.buffer_component_times
@@ -422,3 +418,16 @@ class Measurements():
     def get_buff_occupancies(self):
         return self.buffer_occupancies
         
+
+    def get_aggreg_facility(self):
+        return self.comp_aggreg_facility
+    
+    def get_aggreg_buff_work(self):
+        return self.comp_aggreg_buff_work
+    
+
+    def get_total_facility_count(self):
+        return self.total_facility_count
+    
+    def get_total_buff_work_count(self):
+        return self.total_buff_work_count

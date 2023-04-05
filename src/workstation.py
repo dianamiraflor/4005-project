@@ -1,14 +1,18 @@
 from measurements import Measurements
 from service_times import ServiceTimes
+from system import System
 from constants import SIMULATION_DURATION
 
 class Workstation1(object):
 
-    def __init__(self, env, buffer1, measurements : Measurements, st : ServiceTimes):
+    def __init__(self, env, buffer1, measurements : Measurements, st : ServiceTimes, 
+                 facility : System, buff_work : System):
         self.env = env
         self.buffer1 = buffer1
         self.measurements = measurements
         self.st = st
+        self.facility = facility
+        self.buff_work = buff_work
         self.action = env.process(self.run())
 
     def run(self):
@@ -30,7 +34,12 @@ class Workstation1(object):
             yield self.env.timeout(service_time)
             print("Workstation 1 service time: " + str(service_time) + " minutes")
             print("Workstation 1 has finished assembling product 1")
-                
+            self.facility.dec_current_comp(1)
+            self.buff_work.dec_current_comp(1)
+            self.measurements.update_comp_aggregate_facility(self.env.now, self.facility.get_current_comp())
+            self.measurements.update_comp_aggregate_buff_work('workstation1', self.env.now, self.buff_work.get_current_comp())
+
+
             c1.set_end_time(self.env.now)        # Ends component time
             c1.set_time_spent()             # Calculates time in the facility
             c1.buffer_workstation_time()    # Calculates time in buffer + workstation
@@ -43,12 +52,15 @@ class Workstation1(object):
 
 class Workstation2(object):
 
-    def __init__(self, env, buffer2, buffer3, measurements : Measurements, st : ServiceTimes):
+    def __init__(self, env, buffer2, buffer3, measurements : Measurements, st : ServiceTimes,
+                 facility : System, buff_work : System):
         self.env = env
         self.buffer2 = buffer2
         self.buffer3 = buffer3
         self.measurements = measurements
         self.st = st
+        self.facility = facility
+        self.buff_work = buff_work
         self.action = env.process(self.run())
 
     def run(self):
@@ -80,6 +92,7 @@ class Workstation2(object):
 
                 self.measurements.add_buffer2_comp_time(len(self.buffer2.items), self.env.now)
                 self.measurements.add_buffer3_comp_time(len(self.buffer3.items), self.env.now)
+                
             
                 self.measurements.add_workstation2_length_times(2, self.env.now)
 
@@ -89,6 +102,10 @@ class Workstation2(object):
                 yield self.env.timeout(service_time)
                 print("Workstation 2 service time: " + str(service_time) + " minutes")
                 print("Workstation 2 has finished assembling product 2")
+                self.facility.dec_current_comp(2)
+                self.buff_work.dec_current_comp(2)
+                self.measurements.update_comp_aggregate_facility(self.env.now, self.facility.get_current_comp())
+                self.measurements.update_comp_aggregate_buff_work('workstation2', self.env.now, self.buff_work.get_current_comp())
 
                 c1.set_end_time(self.env.now)        # Ends component time
                 c1.set_time_spent()             # Calculates time in the facility
@@ -110,12 +127,15 @@ class Workstation2(object):
 
 class Workstation3(object):
 
-    def __init__(self, env, buffer4, buffer5, measurements : Measurements, st : ServiceTimes):
+    def __init__(self, env, buffer4, buffer5, measurements : Measurements, st : ServiceTimes,
+                 facility : System, buff_work : System):
         self.env = env
         self.buffer4 = buffer4
         self.buffer5 = buffer5
         self.measurements = measurements
         self.st = st
+        self.facility = facility
+        self.buff_work = buff_work
         self.action = env.process(self.run())
 
     def run(self):
@@ -158,8 +178,12 @@ class Workstation3(object):
             yield self.env.timeout(service_time)
             print("Workstation 3 service time: " + str(service_time) + " minutes")
             print("Workstation 3 has finished assembling product 3")
+            self.facility.dec_current_comp(2)
+            self.buff_work.dec_current_comp(2)
+            self.measurements.update_comp_aggregate_facility(self.env.now, self.facility.get_current_comp())
+            self.measurements.update_comp_aggregate_buff_work('workstation3', self.env.now, self.buff_work.get_current_comp())
                 
-            c1.set_end_time(self.env.now)        # Ends component time
+            c1.set_end_time(self.env.now)   # Ends component time
             c1.set_time_spent()             # Calculates time in the facility
             c1.buffer_workstation_time()    # Calculates time in buffer + workstation
 

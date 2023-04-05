@@ -5,6 +5,7 @@ from measurements import Measurements
 from service_times import ServiceTimes
 from inspector import Inspector1, Inspector2
 from workstation import Workstation1, Workstation2, Workstation3
+from system import System
 from constants import SIMULATION_DURATION, buffer_capacity, st_dir, it_dir, comp_dir
 
 if __name__ == '__main__':
@@ -32,6 +33,10 @@ if __name__ == '__main__':
     print(f'----------------------------------')
 
     env = simpy.Environment()
+    facility = System()
+    buff_work1 = System()
+    buff_work2 = System()
+    buff_work3 = System()
 
     # -------- QUEUES / BUFFERS
     # buffers = [Buffer(1), Buffer(2), Buffer(3), Buffer(4), Buffer(5)]
@@ -42,11 +47,11 @@ if __name__ == '__main__':
     buffer4 = simpy.Store(env, capacity = buffer_capacity)
     buffer5 = simpy.Store(env, capacity = buffer_capacity)
 
-    inspector_1_process = Inspector1(env, buffer1, buffer2, buffer4, measurements, st)
-    inspector_2_process = Inspector2(env, buffer3, buffer5, measurements, st)
-    workstation_1_process = Workstation1(env, buffer1, measurements, st)
-    workstation_2_process = Workstation2(env, buffer2, buffer3, measurements, st)
-    workstation_3_process = Workstation3(env, buffer4, buffer5, measurements, st)
+    inspector_1_process = Inspector1(env, buffer1, buffer2, buffer4, measurements, st, facility, buff_work1, buff_work2, buff_work3)
+    inspector_2_process = Inspector2(env, buffer3, buffer5, measurements, st, facility, buff_work2, buff_work3)
+    workstation_1_process = Workstation1(env, buffer1, measurements, st, facility, buff_work1)
+    workstation_2_process = Workstation2(env, buffer2, buffer3, measurements, st, facility, buff_work2)
+    workstation_3_process = Workstation3(env, buffer4, buffer5, measurements, st, facility, buff_work3)
     
     env.run(until = SIMULATION_DURATION)
 
@@ -89,7 +94,12 @@ if __name__ == '__main__':
     text_file_fnc.list_to_text_file('data/buffer_len_times/', 'buffer4.txt', measurements.get_buffer4_comp_time())
     text_file_fnc.list_to_text_file('data/buffer_len_times/', 'buffer5.txt', measurements.get_buffer5_comp_time())
 
+    total = facility.get_total_component_num()
+    measurements.set_total_comp_facility(total)
 
+    measurements.set_total_comp_buff_work('workstation1', buff_work1.get_total_component_num())
+    measurements.set_total_comp_buff_work('workstation2', buff_work2.get_total_component_num())
+    measurements.set_total_comp_buff_work('workstation3', buff_work3.get_total_component_num())
 
     print(f'Other results are saved in the data directory.')
     if gen_stats:
