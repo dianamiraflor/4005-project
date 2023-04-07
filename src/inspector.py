@@ -35,9 +35,10 @@ class Inspector1(object):
             ############### INSPECTING ###############
             service_time = self.st.get_random_i1_st() 
             c1 = Component(1)
-            self.facility.add_current_comp(1)
-            self.facility.add_total_components()
-            self.measurements.update_comp_aggregate_facility(self.env.now, self.facility.get_current_comp())
+            self.facility.add_current_comp(1) # Update facility 'system' state (current number of components)
+            self.facility.add_total_components() # Update the total count of components in the system
+            self.measurements.update_comp_aggregate_facility(self.env.now, self.facility.get_current_comp()) # Record time and number of components in the facility
+
             c1.set_start_time(self.env.now)
             print("Inspector 1 has started inspecting component 1")
             yield self.env.timeout(service_time)
@@ -69,18 +70,20 @@ class Inspector1(object):
 
             if not idle:
                 if buffer == C1W1:
+                    self.measurements.add_buffer1_comp_time(len(self.buffer1.items), self.env.now) # Record the number of components in the buffer before put()
                     # yield facility.c1w1.put(1)
                     yield self.buffer1.put(c1)
                     self.buff_work1.add_current_comp(1)
                     self.buff_work1.add_total_components()         
                     self.measurements.update_comp_aggregate_buff_work('workstation1', self.env.now, self.buff_work1.get_current_comp())
                     c1.set_queue_start_time(self.env.now)
-                    self.measurements.add_buffer1_comp_time(len(self.buffer1.items), self.env.now)           
-                    self.measurements.avg_buff1_occ(len(self.buffer1.items))
+                    self.measurements.add_buffer1_comp_time(len(self.buffer1.items), self.env.now) # Record the number of components in the buffer after put()
+                   
                     print("Inspector 1 has finished inspecting component 1 and has placed it in C1W1") 
                     self.measurements.add_buffer1_total_count()
                     
                 if buffer == C1W2:
+                    self.measurements.add_buffer2_comp_time(len(self.buffer2.items), self.env.now) 
                     # yield facility.c1w2.put(1)  
                     yield self.buffer2.put(c1)
                     self.buff_work2.add_current_comp(1)
@@ -88,10 +91,11 @@ class Inspector1(object):
                     self.measurements.update_comp_aggregate_buff_work('workstation2', self.env.now, self.buff_work2.get_current_comp())
                     c1.set_queue_start_time(self.env.now)
                     self.measurements.add_buffer2_comp_time(len(self.buffer2.items), self.env.now)           
-                    self.measurements.avg_buff2_occ(len(self.buffer2.items))
+                    
                     print("Inspector 1 has finished inspecting component 1 and has placed it in C1W2") 
                     self.measurements.add_buffer2_total_count()
                 if buffer == C1W3:
+                    self.measurements.add_buffer4_comp_time(len(self.buffer4.items), self.env.now)
                     # yield facility.c1w3.put(1)
                     yield self.buffer4.put(c1)
                     self.buff_work3.add_current_comp(1)
@@ -99,7 +103,7 @@ class Inspector1(object):
                     self.measurements.update_comp_aggregate_buff_work('workstation3', self.env.now, self.buff_work3.get_current_comp())
                     c1.set_queue_start_time(self.env.now)
                     self.measurements.add_buffer4_comp_time(len(self.buffer4.items), self.env.now)
-                    self.measurements.avg_buff4_occ(len(self.buffer4.items))
+                    
                     print("Inspector 1 has finished inspecting component 1 and has placed it in C1W3") 
                     self.measurements.add_buffer4_total_count()
 
@@ -194,14 +198,16 @@ class Inspector2(object):
                 yield self.env.timeout(service_time)
                 print("Inspector 2 service time on C2: " + str(service_time) + " minutes")
                 idle_time = self.env.now
+                self.measurements.add_buffer3_comp_time(len(self.buffer3.items), self.env.now)
                 # yield facility.c2w2.put(1) # Will be blocked until there's space in this buffer
                 yield self.buffer3.put(c2) # TODO: Will this block?
                 idle_time_done = self.env.now
                 self.buff_work2.add_current_comp(1)
+                self.buff_work2.add_total_components()
                 self.measurements.update_comp_aggregate_buff_work('workstation2', self.env.now, self.buff_work2.get_current_comp())
                 c2.set_queue_start_time(self.env.now)
                 self.measurements.add_buffer3_comp_time(len(self.buffer3.items), self.env.now)
-                self.measurements.avg_buff3_occ(len(self.buffer3.items))
+                
                 print("Inspector 2 has finished inspecting component 2 and has placed it in C2W2")
 
                 # STATS
@@ -223,14 +229,16 @@ class Inspector2(object):
                 yield self.env.timeout(service_time)
                 print("Inspector 2 service time on C3: " + str(service_time) + " minutes")
                 idle_time = self.env.now
+                self.measurements.add_buffer5_comp_time(len(self.buffer5.items), self.env.now)
                 # yield facility.c3w3.put(1) # Will be blocked until there's space in this buffer
                 yield self.buffer5.put(c3) # TODO: Will this block?
                 idle_time_done = self.env.now
                 self.buff_work3.add_current_comp(1)
+                self.buff_work3.add_total_components()
                 self.measurements.update_comp_aggregate_buff_work('workstation3', self.env.now, self.buff_work3.get_current_comp(), )
                 c3.set_queue_start_time(self.env.now)
                 self.measurements.add_buffer5_comp_time(len(self.buffer5.items), self.env.now)
-                self.measurements.avg_buff5_occ(len(self.buffer5.items))
+                
                 print("Inspector 2 has finished inspecting component 3 and has placed it in C3W3")
 
                 # STATS

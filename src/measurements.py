@@ -65,10 +65,13 @@ class Measurements():
         }
 
         # ------ Component Times in Buffer + Workstation
+        # BEFORE: I was combining the service + queue times of component 1 in ALL OF ITS BUFFERS.
+        # Had seperate times for each component. Should be seperate times of buffer + workstation
+        #
         self.comp_times_buff_work = {
-            'component1':[],
-            'component2':[],
-            'component3':[]
+            'workstation1': [], 
+            'workstation2': [],
+            'workstation3': []
         }
 
         # ------ # Of Components in Workstation + Time
@@ -222,31 +225,15 @@ class Measurements():
     def add_comp_3_time(self, time):
         self.comp_times_facility['component3'].append(time)
 
-    
-    def avg_buff1_occ(self, length):
-        self.buffer_occupancies['buffer1'] += (length / buffer_capacity)
 
-    def avg_buff2_occ(self, length):
-        self.buffer_occupancies['buffer2'] += (length / buffer_capacity)
+    def add_w1_time_buff_work(self, time):
+        self.comp_times_buff_work['workstation1'].append(time)
 
-    def avg_buff3_occ(self, length):
-        self.buffer_occupancies['buffer3'] += (length / buffer_capacity)
+    def add_w2_time_buff_work(self, time):
+        self.comp_times_buff_work['workstation2'].append(time)
 
-    def avg_buff4_occ(self, length):
-        self.buffer_occupancies['buffer4'] += (length / buffer_capacity)
-
-    def avg_buff5_occ(self, length):
-        self.buffer_occupancies['buffer5'] += (length / buffer_capacity)
-
-
-    def add_comp_1_time_buf_work(self, time):
-        self.comp_times_buff_work['component1'].append(time)
-
-    def add_comp_2_time_buf_work(self, time):
-        self.comp_times_buff_work['component2'].append(time)
-
-    def add_comp_3_time_buf_work(self, time):
-        self.comp_times_buff_work['component3'].append(time)
+    def add_w3_time_buff_work(self, time):
+        self.comp_times_buff_work['workstation3'].append(time)
 
 
     def add_workstation1_length_times(self, length, time):
@@ -291,10 +278,10 @@ class Measurements():
         self.buffer_total_count['buffer5'] += 1
 
 
-    def update_comp_aggregate_facility(self, size, time):
+    def update_comp_aggregate_facility(self, time, size):
         self.comp_aggreg_facility.append([time, size])
         
-    def update_comp_aggregate_buff_work(self, workstation, size, time):
+    def update_comp_aggregate_buff_work(self, workstation, time, size):
         self.comp_aggreg_buff_work[workstation].append([time, size])
 
 
@@ -405,13 +392,13 @@ class Measurements():
     
     
     def get_component_1_buf_work(self):
-        return self.comp_times_buff_work['component1']
+        return self.comp_times_buff_work['workstation1']
     
     def get_component_2_buf_work(self):
-        return self.comp_times_buff_work['component2']
+        return self.comp_times_buff_work['workstation2']
     
     def get_component_3_buf_work(self):
-        return self.comp_times_buff_work['component3']
+        return self.comp_times_buff_work['workstation3']
     
     
     def get_workstation1_length_times(self):
@@ -426,34 +413,14 @@ class Measurements():
     def get_workstation_length_times(self):
         return self.workstation_length_times
     
-
-    def get_buffer1_comp_time(self):
-        return self.buffer_component_times['buffer1']
-
-    def get_buffer2_comp_time(self):
-        return self.buffer_component_times['buffer2']
-
-    def get_buffer3_comp_time(self):
-        return self.buffer_component_times['buffer3']
-
-    def get_buffer4_comp_time(self):
-        return self.buffer_component_times['buffer4']
-
-    def get_buffer5_comp_time(self):
-        return self.buffer_component_times['buffer5']
+        
+    def get_buffer_comp_times(self):
+        return self.buffer_component_times
     
 
     def get_buffer_total_count(self):
         return self.buffer_total_count
     
-    
-    def get_buffer_comp_times(self):
-        return self.buffer_component_times
-    
-    def get_buff_occupancies(self):
-        return self.buffer_occupancies
-        
-
     def get_aggreg_facility(self):
         return self.comp_aggreg_facility
     

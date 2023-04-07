@@ -99,6 +99,12 @@ def calculate_all_buffers_occupancy(buffers):
     return b1, b2, b3, b4, b5
 
 def calculate_buffer_occupancy(buffer):
+    """
+    Calculates average buffer occupancy of a buffer.
+
+    This is done by taking a sum of weighted average of each number of components in a buffer (0, 1, 2)
+    The sum is then divided by the time intetrval of the recorded number of components in a buffer.
+    """
     total_time = buffer[-1][0] - buffer[0][0]
     total_components = 0
 
@@ -121,26 +127,24 @@ def calculate_buffer_occupancy(buffer):
 
 def calculate_mean_system_components(system_list):
     """
-    TODO: Work on this. To get the overall number of components in the system, 
-    do we combine the step functions together? 
+    Calculates the mean number of components of a 'system'.
 
-    Helper function to help calculate the mean number of components
-    system_list : A list of queues and service centers in the 'system'
-
-     the time average is simply a summation of all steps multiplied by 
-     the duration of each step and then divided by the total time
+    
     """
-    total_time = system_list[-1][1] - system_list[0][1]
+    total_time = system_list[-1][0] - system_list[0][0]
     total_steps = len(system_list)
     steps_sum = 0
     for i in range(total_steps):
-        steps_sum += system_list[i][0] * (system_list[i][1] - (system_list[i-1][1] if i > 0 else 0))
+        steps_sum += system_list[i][1] * (system_list[i][0] - (system_list[i-1][0] if i > 0 else 0))
     mean_components = steps_sum / total_time
     return mean_components
 
 
 
 def calculate_average_service_times(recorded_service_times):
+    """
+    Calculates the average service times of each inspector and workstation
+    """
     means = {}
 
     for key in recorded_service_times:
@@ -157,6 +161,13 @@ def calculate_average_service_times(recorded_service_times):
     return inspector1_mean, inspector22_mean, inspector23_mean, workstation1_mean, workstation2_mean, workstation3_mean
 
 def calculate_average_queue_times(queue_times):
+    """
+    Calculates the average queuing time of components in the following systems:
+    Facility
+    Workstation1 + Buffer1
+    Workstation2 + Buffer2, Buffer3
+    Workstation3 + Buffer4, Buffer5
+    """
     facility_mean = statistics.mean(queue_times['facility'])
     w1_mean = statistics.mean(queue_times['workstation1'])
     w2_mean = statistics.mean(queue_times['workstation2'])
@@ -196,6 +207,7 @@ def generate_stats(measurements: Measurements, sim_dur):
         'SYSTEM: Facility',
         'Facility input rate: {0:.3f}' .format(facility_thru),
         'Mean delay of components: {0:.3f}'.format(mean_component_delays),
+        'Caclulated L: {0:.3f}'.format(mean_component_delays * facility_thru),
         'Mean number of components in facility: {0:.3f}'.format(facility_mean_components),
         'Departing rate: {0:.3f}'.format(facility_departing_rate),
         'Average queueing time: {0:.3f}'.format(avg_queue_facility),
@@ -203,18 +215,21 @@ def generate_stats(measurements: Measurements, sim_dur):
         'SYSTEM: Buffer + Workstation',
         'Workstation 1 input rate: {0:.3f}'.format(w1_thru),
         'Workstation 1 QT + ST: {0:.3f}'.format(w1_st_qt),
+        'Caclulated L: {0:.3f}'.format(w1_st_qt * w1_thru),
         'Workstation 1 Mean Number of Components in System: {0:.3f}'.format(w1_mean_comp),
         'Workstation 1 departing rate: {0:.3f}'.format(w1_dep_rate),
         'Workstation 1 average queueing time: {0:.3f}'.format(avg_queue_w1),
         '\n',
         'Workstation 2 input rate: {0:.3f}'.format(w2_thru),
         'Workstation 2 QT + ST: {0:.3f}'.format(w2_st_qt),
+        'Caclulated L: {0:.3f}'.format(w2_st_qt * w2_thru),
         'Workstation 2 Mean Number of Components in System: {0:.3f}'.format(w2_mean_comp),
         'Workstation 2 departing rate: {0:.3f}'.format(w2_dep_rate),
         'Workstation 2 average queueing time: {0:.3f}'.format(avg_queue_w2),
         '\n',
         'Workstation 3 input rate: {0:.3f}'.format(w3_thru),
         'Workstation 3 QT + ST: {0:.3f}'.format(w3_st_qt),
+        'Caclulated L: {0:.3f}'.format(w3_st_qt * w3_thru),
         'Workstation 3 Mean Number of Components in System: {0:.3f}'.format(w3_mean_comp),
         'Workstation 3 departing rate: {0:.3f}'.format(w3_dep_rate),
         'Workstation 3 average queueing time: {0:.3f}'.format(avg_queue_w3),

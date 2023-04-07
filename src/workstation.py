@@ -17,13 +17,14 @@ class Workstation1(object):
 
     def run(self):
         while True:
+            self.measurements.add_buffer1_comp_time(len(self.buffer1.items), self.env.now)
             print("Workstation 1 is waiting for component 1...")
             idle_time = self.env.now
             self.measurements.add_workstation1_length_times(0, idle_time)
             # yield facility.c1w1.get(1)
             c1 = yield self.buffer1.get()
             self.measurements.add_buffer1_comp_time(len(self.buffer1.items), self.env.now)
-            self.measurements.avg_buff1_occ(len(self.buffer1.items))
+            
 
             c1.set_assembly_time(self.env.now)
             c1.set_queue_time()
@@ -53,7 +54,7 @@ class Workstation1(object):
             self.measurements.add_comp_1_time(c1.get_time_spent())
             self.measurements.add_queue_time('facility', c1.get_queue_time())
             self.measurements.add_queue_time('workstation1', c1.get_queue_time())
-            self.measurements.add_comp_1_time_buf_work(c1.get_buffer_workstation_time())
+            self.measurements.add_w1_time_buff_work(c1.get_buffer_workstation_time())
 
 class Workstation2(object):
 
@@ -70,6 +71,8 @@ class Workstation2(object):
 
     def run(self):
         while True:
+            self.measurements.add_buffer2_comp_time(len(self.buffer2.items), self.env.now)
+            self.measurements.add_buffer3_comp_time(len(self.buffer3.items), self.env.now)
             idle_time = self.env.now
             self.measurements.add_workstation2_length_times(0, idle_time)
 
@@ -88,9 +91,6 @@ class Workstation2(object):
             # yield facility.c1w2.get(1) and facility.c2w2.get(1) # Wait until c1 and c2 components are both available
             c1 = yield self.buffer2.get()
             c2 = yield self.buffer3.get()
-
-            self.measurements.avg_buff2_occ(len(self.buffer2.items))
-            self.measurements.avg_buff3_occ(len(self.buffer3.items))
 
             c1.set_assembly_time(self.env.now)
             c2.set_assembly_time(self.env.now)
@@ -138,8 +138,8 @@ class Workstation2(object):
             self.measurements.add_queue_time('workstation2', c1.get_queue_time())
             self.measurements.add_queue_time('workstation2', c2.get_queue_time())
 
-            self.measurements.add_comp_1_time_buf_work(c1.get_buffer_workstation_time())
-            self.measurements.add_comp_2_time_buf_work(c2.get_buffer_workstation_time())
+            self.measurements.add_w2_time_buff_work(c1.get_buffer_workstation_time())
+            self.measurements.add_w2_time_buff_work(c2.get_buffer_workstation_time())
 
 class Workstation3(object):
 
@@ -156,6 +156,9 @@ class Workstation3(object):
 
     def run(self):
         while True:
+            self.measurements.add_buffer4_comp_time(len(self.buffer4.items), self.env.now)
+            self.measurements.add_buffer5_comp_time(len(self.buffer5.items), self.env.now)
+        
             idle_time = self.env.now
             self.measurements.add_workstation3_length_times(0, idle_time)
 
@@ -177,9 +180,6 @@ class Workstation3(object):
             c1 = yield self.buffer4.get()
             c3 = yield self.buffer5.get()
 
-            self.measurements.avg_buff4_occ(len(self.buffer4.items))
-            self.measurements.avg_buff5_occ(len(self.buffer5.items))
-
             c1.set_assembly_time(self.env.now)
             c3.set_assembly_time(self.env.now)
 
@@ -197,6 +197,11 @@ class Workstation3(object):
             yield self.env.timeout(service_time)
             print("Workstation 3 service time: " + str(service_time) + " minutes")
             print("Workstation 3 has finished assembling product 3")
+
+            # Set the end times of components
+            c1.set_end_time(self.env.now)
+            c3.set_end_time(self.env.now)
+
             self.facility.dec_current_comp(2)
             self.facility.add_total_components_departed(2)
             self.buff_work.dec_current_comp(2)
@@ -204,11 +209,9 @@ class Workstation3(object):
             self.measurements.update_comp_aggregate_facility(self.env.now, self.facility.get_current_comp())
             self.measurements.update_comp_aggregate_buff_work('workstation3', self.env.now, self.buff_work.get_current_comp())
                 
-            c1.set_end_time(self.env.now)   # Ends component time
             c1.set_time_spent()             # Calculates time in the facility
             c1.buffer_workstation_time()    # Calculates time in buffer + workstation
 
-            c3.set_end_time(self.env.now)
             c3.set_time_spent()             # Calculates time in the facility
             c3.buffer_workstation_time()    # Calculates time in buffer + workstation
                      
@@ -216,13 +219,16 @@ class Workstation3(object):
             self.measurements.st_w3(service_time)
 
             self.measurements.add_prod_3_count()
-            self.measurements.add_comp_1_time(c1.get_time_spent())
-            self.measurements.add_comp_3_time(c3.get_time_spent())
 
             self.measurements.add_queue_time('facility', c1.get_queue_time())
             self.measurements.add_queue_time('facility', c3.get_queue_time())
             self.measurements.add_queue_time('workstation3', c1.get_queue_time())
             self.measurements.add_queue_time('workstation3', c3.get_queue_time())
 
-            self.measurements.add_comp_1_time_buf_work(c1.get_buffer_workstation_time())
-            self.measurements.add_comp_3_time_buf_work(c3.get_buffer_workstation_time())
+            # In facility
+            self.measurements.add_comp_1_time(c1.get_time_spent())
+            self.measurements.add_comp_3_time(c3.get_time_spent())
+
+            # In buffer + workstattion
+            self.measurements.add_w3_time_buff_work(c1.get_buffer_workstation_time())
+            self.measurements.add_w3_time_buff_work(c3.get_buffer_workstation_time())

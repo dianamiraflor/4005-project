@@ -54,9 +54,6 @@ class Component():
 
 
 
-    def now_ready(self):
-        self._is_ready = True
-
     def get_time_spent(self):
         return self._time_spent
     
@@ -65,9 +62,6 @@ class Component():
     
     def get_id(self):
         return self._id
-    
-    def get_status(self):
-        return self._is_ready
     
     def get_start_time(self):
         return self._start_time

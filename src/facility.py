@@ -88,16 +88,21 @@ if __name__ == '__main__':
     text_file_fnc.list_to_text_file('data/' + comp_dir, 'comp3_time_spent.txt', measurements.get_component_3_time())
     
     # TODO: Collect buffer length time stats for LITTLE'S LAW
-    text_file_fnc.list_to_text_file('data/buffer_len_times/', 'buffer1.txt', measurements.get_buffer1_comp_time())
-    text_file_fnc.list_to_text_file('data/buffer_len_times/', 'buffer2.txt', measurements.get_buffer2_comp_time())
-    text_file_fnc.list_to_text_file('data/buffer_len_times/', 'buffer3.txt', measurements.get_buffer3_comp_time())
-    text_file_fnc.list_to_text_file('data/buffer_len_times/', 'buffer4.txt', measurements.get_buffer4_comp_time())
-    text_file_fnc.list_to_text_file('data/buffer_len_times/', 'buffer5.txt', measurements.get_buffer5_comp_time())
+    text_file_fnc.list_to_text_file('data/buffer_len_times/', 'buffer1.txt', measurements.get_buffer_comp_times()['buffer1'])
+    text_file_fnc.list_to_text_file('data/buffer_len_times/', 'buffer2.txt', measurements.get_buffer_comp_times()['buffer2'])
+    text_file_fnc.list_to_text_file('data/buffer_len_times/', 'buffer3.txt', measurements.get_buffer_comp_times()['buffer3'])
+    text_file_fnc.list_to_text_file('data/buffer_len_times/', 'buffer4.txt', measurements.get_buffer_comp_times()['buffer4'])
+    text_file_fnc.list_to_text_file('data/buffer_len_times/', 'buffer5.txt', measurements.get_buffer_comp_times()['buffer5'])
 
     text_file_fnc.list_to_text_file('data/comp_queue_times/', 'facility.txt', measurements.get_queue_times()['facility'])
     text_file_fnc.list_to_text_file('data/comp_queue_times/', 'workstation1.txt', measurements.get_queue_times()['workstation1'])
     text_file_fnc.list_to_text_file('data/comp_queue_times/', 'workstation2.txt', measurements.get_queue_times()['workstation2'])
     text_file_fnc.list_to_text_file('data/comp_queue_times/', 'workstation3.txt', measurements.get_queue_times()['workstation3'])
+
+    text_file_fnc.list_to_text_file('data/system_comp_len_times/', 'facility.txt', measurements.get_aggreg_facility())
+    text_file_fnc.list_to_text_file('data/system_comp_len_times/', 'buff_work1.txt', measurements.get_aggreg_buff_work()['workstation1'])
+    text_file_fnc.list_to_text_file('data/system_comp_len_times/', 'buff_work2.txt', measurements.get_aggreg_buff_work()['workstation2'])
+    text_file_fnc.list_to_text_file('data/system_comp_len_times/', 'buff_work3.txt', measurements.get_aggreg_buff_work()['workstation3'])
 
     total = facility.get_total_component_num()
     measurements.set_total_comp_facility(total)

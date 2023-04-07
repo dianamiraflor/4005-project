@@ -30,3 +30,11 @@ python facility.py
 To simulate the manufacturing facility.
 
 <span style="color:red"> NOTE: To change simulation configurations, locate to /src/constants.py.</span>
+
+
+## REMINDERS WHEN READING THROUGH CODE
+buffer1 = C1 Buffer of Workstation 1
+buffer2 = C1 Buffer of Workstation 2
+buffer3 = C2 Buffer of Workstation 2
+buffer4 = C1 Buffer of Workstation 3
+buffer5 = C3 Buffer of Workstation 3
