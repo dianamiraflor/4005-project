@@ -378,15 +378,6 @@ class Measurements():
         return self.comp_count_inspected['component3']
     
     
-    def get_component_1_time(self):
-        return self.comp_times_facility['component1']
-
-    def get_component_2_time(self):
-        return self.comp_times_facility['component2']
-    
-    def get_component_3_time(self):
-        return self.comp_times_facility['component3']
-    
     def get_component_times(self):
         return self.comp_times_facility
     
