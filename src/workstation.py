@@ -13,7 +13,6 @@ class Workstation1(object):
         self.st = st
         self.facility = facility
         self.buff_work = buff_work
-        self.action = env.process(self.run())
 
     def run(self):
         while True:
@@ -67,8 +66,7 @@ class Workstation2(object):
         self.st = st
         self.facility = facility
         self.buff_work = buff_work
-        self.action = env.process(self.run())
-
+      
     def run(self):
         while True:
             self.measurements.add_buffer2_comp_time(len(self.buffer2.items), self.env.now)
@@ -152,7 +150,7 @@ class Workstation3(object):
         self.st = st
         self.facility = facility
         self.buff_work = buff_work
-        self.action = env.process(self.run())
+        
 
     def run(self):
         while True:

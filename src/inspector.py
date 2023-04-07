@@ -21,7 +21,7 @@ class Inspector1(object):
         self.buff_work1 = buff_work1
         self.buff_work2 = buff_work2
         self.buff_work3 = buff_work3
-        self.action = env.process(self.run())
+
 
     def run(self):
         print('Inspector 1 is starting...')
@@ -179,7 +179,6 @@ class Inspector2(object):
         self.facility = facility
         self.buff_work2 = buff_work2
         self.buff_work3 = buff_work3
-        self.action = env.process(self.run())
 
     def run(self):
         while True:
