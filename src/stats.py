@@ -175,6 +175,9 @@ def calculate_average_queue_times(queue_times):
 
     return facility_mean, w1_mean, w2_mean, w3_mean
 
+def calculate_block_time(server, sim_dur):
+    return sum(server) / sim_dur
+
 
 def generate_stats(measurements: Measurements, sim_dur):
     """
@@ -199,6 +202,12 @@ def generate_stats(measurements: Measurements, sim_dur):
     w1_dep_rate, w2_dep_rate, w3_dep_rate = workstations_input_rate(measurements.get_total_comp_departed_buff_work(), sim_dur)
 
     avg_queue_facility, avg_queue_w1, avg_queue_w2, avg_queue_w3  = calculate_average_queue_times(measurements.get_queue_times())
+
+    i1_blocked = calculate_block_time(measurements.get_list_it_i1(), sim_dur)
+    i2_blocked = calculate_block_time(measurements.get_list_it_i2(), sim_dur)
+    w1_blocked = calculate_block_time(measurements.get_list_it_w1(), sim_dur)
+    w2_blocked = calculate_block_time(measurements.get_list_it_w2(), sim_dur)
+    w3_blocked = calculate_block_time(measurements.get_list_it_w3(), sim_dur)
 
     lines = [
         'Here are the statistics for the simulation: ',
@@ -251,7 +260,13 @@ def generate_stats(measurements: Measurements, sim_dur):
         '--------------------------------------------------------',
         'TOTAL NUMBER OF COMPONENTS ENTERED : {0:.3f}'.format(measurements.get_total_facility_count()),
         'TOTAL NUMBER OF COMPONENTS DEPARTED : {0:.3f}'.format(measurements.get_total_comp_departed()),
-        '--------------------------------------------------------'
+        '--------------------------------------------------------',
+        'PROBABILITY OF BLOCKED SERVERS',
+        'Inspector 1 : {0:.3f}'.format(i1_blocked),
+        'Inspector 2 : {0:.3f}'.format(i2_blocked),
+        'Workstation 1 : {0:.3f}'.format(w1_blocked),
+        'Workstation 2 : {0:.3f}'.format(w2_blocked),
+        'Workstation 3 : {0:.3f}'.format(w3_blocked),
     ]
 
     list_to_text_file('stats/', 'sim_' + str(sim_dur) + '_stats.txt', lines)

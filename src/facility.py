@@ -1,6 +1,6 @@
 import simpy
 import text_file_fnc
-from stats import generate_stats
+from stats import generate_stats, calculate_block_time, calculate_buffer_occupancy, facility_input_rate
 from measurements import Measurements
 from service_times import ServiceTimes
 from inspector import Inspector1, Inspector2
@@ -61,7 +61,7 @@ def multiple_durations(replications, batches, batch_interval, measurements):
         }
         for num in range(replications):
 
-            env, employee_list = init_simulation()
+            env, employee_list, facility = init_simulation()
 
             for process in employee_list:
                 env.process(process.run())
@@ -86,8 +86,11 @@ def multiple_durations(replications, batches, batch_interval, measurements):
 
 def multiple_replications(replications, duration, measurements):
     keys=['inspector1',	'inspector22','inspector23','workstation1','workstation2','workstation3']
+    server_keys=['inspector1','inspector2','workstation1','workstation2','workstation3']
+    buffer_keys=['buffer1','buffer2','buffer3','buffer4','buffer5']
 
     multi_run_avgs={
+        # This is for service times
         'inspector1': [],
         'inspector22': [],
         'inspector23': [],
@@ -95,36 +98,103 @@ def multiple_replications(replications, duration, measurements):
         'workstation2':[],
         'workstation3':[]
     }
-    ensemble_avg={}
-    sample_variance={}
-    confidence_interval={}
-    r_val={}
+
+    multi_run_throughput = []
+
+    multi_run_blocked_probability = {
+        'inspector1': [],
+        'inspector2': [],
+        'workstation1':[],
+        'workstation2':[],
+        'workstation3':[]
+    }
+
+    multi_run_avg_buff_occupancy = {
+        'buffer1': [],
+        'buffer2': [],
+        'buffer3': [],
+        'buffer4': [],
+        'buffer5': []
+    }
 
 
     for num in range(replications):
-        env, employee_list = init_simulation()
+        env, employee_list, facility = init_simulation()
 
         for process in employee_list:
             env.process(process.run())
 
         env.run(until=duration)
 
+        total = facility.get_total_component_num()
+        measurements.set_total_comp_facility(total)
+
         single_run_avgs={}
+        
         for key in keys:
             if len(measurements.service_times[key])==0:
                 single_run_avgs[key]=0
             else:
                 single_run_avgs[key]=sum(measurements.service_times[key])/len(measurements.service_times[key])
-
+                
             multi_run_avgs[key].append(single_run_avgs[key])
+            measurements.service_times[key] = [] # Resest for next replication
 
-        print(*single_run_avgs.values(), sep="\t")
 
-    for key in keys:
-        ensemble_avg[key]=sum(multi_run_avgs[key])/len(multi_run_avgs[key])
+        for s_key in server_keys:
+            # Calculate the probability a service center is blocked in one replication
+            multi_run_blocked_probability[s_key].append(calculate_block_time(measurements.idle_times[s_key], duration))
+            measurements.idle_times[s_key] = [] # Resest for next replication
+
+        for b_key in buffer_keys:
+            multi_run_avg_buff_occupancy[b_key].append(calculate_buffer_occupancy(measurements.buffer_component_times[b_key]))
+            measurements.buffer_component_times[b_key] = [] # Resest for next replication
+
+        measurements
+        multi_run_throughput.append(facility_input_rate(measurements.get_total_facility_count(), duration))   
+
+
+
+    text_file_fnc.list_to_text_file('data/replications/', 'i1_block_times.txt', multi_run_blocked_probability['inspector1'])
+    text_file_fnc.list_to_text_file('data/replications/', 'i2_block_times.txt', multi_run_blocked_probability['inspector2'])
+    text_file_fnc.list_to_text_file('data/replications/', 'w1_block_times.txt', multi_run_blocked_probability['workstation1'])
+    text_file_fnc.list_to_text_file('data/replications/', 'w2_block_times.txt', multi_run_blocked_probability['workstation2'])
+    text_file_fnc.list_to_text_file('data/replications/', 'w3_block_times.txt', multi_run_blocked_probability['workstation3'])
+
+    text_file_fnc.list_to_text_file('data/replications/', 'buffer1_occ.txt', multi_run_avg_buff_occupancy['buffer1'])
+    text_file_fnc.list_to_text_file('data/replications/', 'buffer2_occ.txt', multi_run_avg_buff_occupancy['buffer2'])
+    text_file_fnc.list_to_text_file('data/replications/', 'buffer3_occ.txt', multi_run_avg_buff_occupancy['buffer3'])
+    text_file_fnc.list_to_text_file('data/replications/', 'buffer4_occ.txt', multi_run_avg_buff_occupancy['buffer4'])
+    text_file_fnc.list_to_text_file('data/replications/', 'buffer5_occ.txt', multi_run_avg_buff_occupancy['buffer5'])
+
+    text_file_fnc.list_to_text_file('data/replications/', 'throughput.txt', multi_run_throughput)
+
+
+    print('\n SERVICE TIMES CONFIDENCE INTERVAL')
+    calculate_confidence_interval(multi_run_avgs, replications)
+
+    print('\n PROBABILITY OF SERVER BLOCKED CONFIDENCE INTERVAL')
+    calculate_confidence_interval(multi_run_blocked_probability, replications)
+
+    print('\n AVERAGE BUFFER OCCUPANCY CONFIDENCE INTERVAL')
+    calculate_confidence_interval(multi_run_avg_buff_occupancy, replications)
+
+    print('\n THROUGHPUT CONFIDENCE INTERVAL')
+    calculate_confidence_interval_thru(multi_run_throughput, replications)
+
+
+def calculate_confidence_interval(multi_values, replications):
+    ensemble_avg={}
+    sample_variance={}
+    confidence_interval={}
+    r_val={}
+
+
+    for key in multi_values.keys():
+        ensemble_avg[key]=sum(multi_values[key])/len(multi_values[key])
 
         tmp_sum=0
-        for yi in multi_run_avgs[key]:
+        for yi in multi_values[key]:
             tmp_sum+=(yi-ensemble_avg[key])**2
 
         sample_variance[key]=1/(replications-1) * tmp_sum
@@ -153,8 +223,45 @@ def multiple_replications(replications, duration, measurements):
     print(*[format(value, ".2f") for value in confidence_interval.values()], sep="\t")
 
     print(f"\nR at {replications} replications:")
-    print(*[format(value, ".2f") for value in r_val.values()], sep="\t")
-    
+    print(*[format(value, ".2f") for value in r_val.values()], sep="\t")   
+
+
+
+def calculate_confidence_interval_thru(multi_throughput, replications):
+    ensemble_avg=sum(multi_throughput)/len(multi_throughput)
+
+    tmp_sum=0
+    for i in range(len(multi_throughput)):
+        tmp_sum+=(multi_throughput[i]-ensemble_avg)**2
+
+    sample_variance=1/(replications-1) * tmp_sum
+
+    # Scores for 95% confidence
+    t_score=t.ppf(0.975,df=replications-1)
+    z_score=z.ppf(0.975)
+
+    confidence_interval=t_score*sqrt(sample_variance/replications)
+
+    r_val=((z_score**2)*sample_variance)/0.2
+
+    print("\nT-score:")
+    print(t_score)
+
+    print("\nSample Variances:")
+    print(format(sample_variance, ".4f"), sep="\t")
+
+    print("\nStandard Deviation:")
+    print(format(sqrt(sample_variance), ".4f"), sep="\t")
+
+    print("\nMeans:")
+    print(format(ensemble_avg, ".4f"), sep="\t")
+
+    print("\nCI (+/-):")
+    print(format(confidence_interval, ".4f"), sep="\t")
+
+    print(f"\nR at {replications} replications:")
+    print(format(r_val, ".4f"), sep="\t")  
+
 
 def init_simulation():
     env = simpy.Environment()
@@ -181,7 +288,8 @@ def init_simulation():
     process_list.append(Workstation2(env, buffer2, buffer3, measurements, st, facility, buff_work2))
     process_list.append(Workstation3(env, buffer4, buffer5, measurements, st, facility, buff_work3))
     
-    return env, process_list
+    return env, process_list, facility
+
 
 if __name__ == '__main__':
     """

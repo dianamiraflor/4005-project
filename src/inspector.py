@@ -51,28 +51,33 @@ class Inspector1(object):
             buffer4_size = len(self.buffer4.items)
 
             # Case 1: All buffers are at max capacity which will cause inspector 1 to block
-            if buffer1_size == buffer2_size == buffer4_size == buffer_capacity:
-                idle = True
-                idle_start = self.env.now
-                print("Inspector 1 has been blocked (all buffers are at max capacity) and is waiting for an available buffer")
+            # if buffer1_size == buffer2_size == buffer4_size == buffer_capacity:
+            #    idle = True
+            #  idle_start = self.env.now
+            #  print("Inspector 1 has been blocked (all buffers are at max capacity) and is waiting for an available buffer")
                 
-                # Try finding a free buffer
-                # TODO: Might be broken
-                self.find_free_buffer(idle)
+            # # Try finding a free buffer
+            #  # TODO: Might be broken
+            #   self.find_free_buffer(idle)
 
-                idle_end = self.env.now
-                idle = False
+            #  idle_end = self.env.now
+            #  idle = False
 
             # Case 2: All buffers are not at max capacity -> there is always an available buffer to place component 1 in
-            else: 
-                print("Inspector 1 is currently choosing the shortest buffer (queue) to place a component in")
-                buffer = self.get_chosen_buffer(buffer1_size, buffer2_size, buffer4_size)
+            # else: 
 
+            print("Inspector 1 is currently choosing the shortest buffer (queue) to place a component in")
+            buffer = self.get_chosen_buffer(buffer1_size, buffer2_size, buffer4_size)
+        
             if not idle:
                 if buffer == C1W1:
+                    idle_start = self.env.now
+                    self.measurements.add_blocked_time_start('inspector1', idle_start)
                     self.measurements.add_buffer1_comp_time(len(self.buffer1.items), self.env.now) # Record the number of components in the buffer before put()
                     # yield facility.c1w1.put(1)
                     yield self.buffer1.put(c1)
+                    idle_end = self.env.now
+                    self.measurements.add_blocked_time_end('inspector1', idle_end)
                     self.buff_work1.add_current_comp(1)
                     self.buff_work1.add_total_components()         
                     self.measurements.update_comp_aggregate_buff_work('workstation1', self.env.now, self.buff_work1.get_current_comp())
@@ -83,9 +88,13 @@ class Inspector1(object):
                     self.measurements.add_buffer1_total_count()
                     
                 if buffer == C1W2:
+                    idle_start = self.env.now
+                    self.measurements.add_blocked_time_start('inspector1', idle_start)
                     self.measurements.add_buffer2_comp_time(len(self.buffer2.items), self.env.now) 
                     # yield facility.c1w2.put(1)  
                     yield self.buffer2.put(c1)
+                    idle_end = self.env.now
+                    self.measurements.add_blocked_time_end('inspector1', idle_end)
                     self.buff_work2.add_current_comp(1)
                     self.buff_work2.add_total_components()     
                     self.measurements.update_comp_aggregate_buff_work('workstation2', self.env.now, self.buff_work2.get_current_comp())
@@ -95,9 +104,13 @@ class Inspector1(object):
                     print("Inspector 1 has finished inspecting component 1 and has placed it in C1W2") 
                     self.measurements.add_buffer2_total_count()
                 if buffer == C1W3:
+                    idle_start = self.env.now
+                    self.measurements.add_blocked_time_start('inspector1', idle_start)
                     self.measurements.add_buffer4_comp_time(len(self.buffer4.items), self.env.now)
                     # yield facility.c1w3.put(1)
                     yield self.buffer4.put(c1)
+                    idle_end = self.env.now
+                    self.measurements.add_blocked_time_end('inspector1', idle_end)
                     self.buff_work3.add_current_comp(1)
                     self.buff_work3.add_total_components()  
                     self.measurements.update_comp_aggregate_buff_work('workstation3', self.env.now, self.buff_work3.get_current_comp())
@@ -197,10 +210,12 @@ class Inspector2(object):
                 yield self.env.timeout(service_time)
                 print("Inspector 2 service time on C2: " + str(service_time) + " minutes")
                 idle_time = self.env.now
+                self.measurements.add_blocked_time_start('inspector2', idle_time)
                 self.measurements.add_buffer3_comp_time(len(self.buffer3.items), self.env.now)
                 # yield facility.c2w2.put(1) # Will be blocked until there's space in this buffer
                 yield self.buffer3.put(c2) # TODO: Will this block?
                 idle_time_done = self.env.now
+                self.measurements.add_blocked_time_end('inspector2', idle_time_done)
                 self.buff_work2.add_current_comp(1)
                 self.buff_work2.add_total_components()
                 self.measurements.update_comp_aggregate_buff_work('workstation2', self.env.now, self.buff_work2.get_current_comp())
@@ -228,10 +243,12 @@ class Inspector2(object):
                 yield self.env.timeout(service_time)
                 print("Inspector 2 service time on C3: " + str(service_time) + " minutes")
                 idle_time = self.env.now
+                self.measurements.add_blocked_time_start('inspector2', idle_time)
                 self.measurements.add_buffer5_comp_time(len(self.buffer5.items), self.env.now)
                 # yield facility.c3w3.put(1) # Will be blocked until there's space in this buffer
                 yield self.buffer5.put(c3) # TODO: Will this block?
                 idle_time_done = self.env.now
+                self.measurements.add_blocked_time_end('inspector2', idle_time_done)
                 self.buff_work3.add_current_comp(1)
                 self.buff_work3.add_total_components()
                 self.measurements.update_comp_aggregate_buff_work('workstation3', self.env.now, self.buff_work3.get_current_comp(), )

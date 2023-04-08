@@ -14,6 +14,8 @@ python rng_tests.py
 ```
 To perform uniform and autocorrelation tests on RNG.
 
+### RUN SIMULATION 
+
 Run:
 ```
 python rvg.py
@@ -30,6 +32,8 @@ python facility.py
 To simulate the manufacturing facility.
 
 <span style="color:red"> NOTE: To change simulation configurations, locate to /src/constants.py.</span>
+
+NOTE: Little's Law stats is only generated when the simulation type is NORMAL
 
 
 ## REMINDERS WHEN READING THROUGH CODE

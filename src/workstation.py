@@ -19,10 +19,13 @@ class Workstation1(object):
             self.measurements.add_buffer1_comp_time(len(self.buffer1.items), self.env.now)
             print("Workstation 1 is waiting for component 1...")
             idle_time = self.env.now
+            self.measurements.add_blocked_time_start('workstation1', idle_time)
             self.measurements.add_workstation1_length_times(0, idle_time)
             # yield facility.c1w1.get(1)
             c1 = yield self.buffer1.get()
             self.measurements.add_buffer1_comp_time(len(self.buffer1.items), self.env.now)
+            idle_time_done = self.env.now
+            self.measurements.add_blocked_time_end('workstation1', idle_time_done)
             
 
             c1.set_assembly_time(self.env.now)
@@ -30,7 +33,6 @@ class Workstation1(object):
                 
             self.measurements.add_workstation1_length_times(1, self.env.now)
             print("Workstation 1 has begun assembling product 1")
-            idle_time_done = self.env.now
             service_time = self.st.get_random_w1_st()
             yield self.env.timeout(service_time)
             print("Workstation 1 service time: " + str(service_time) + " minutes")
@@ -72,6 +74,7 @@ class Workstation2(object):
             self.measurements.add_buffer2_comp_time(len(self.buffer2.items), self.env.now)
             self.measurements.add_buffer3_comp_time(len(self.buffer3.items), self.env.now)
             idle_time = self.env.now
+            self.measurements.add_blocked_time_start('workstation2', idle_time)
             self.measurements.add_workstation2_length_times(0, idle_time)
 
             print("Workstation 2 is waiting for product 1 and 2...")
@@ -90,6 +93,9 @@ class Workstation2(object):
             c1 = yield self.buffer2.get()
             c2 = yield self.buffer3.get()
 
+            idle_time_done = self.env.now
+            self.measurements.add_blocked_time_end('workstation2', idle_time_done)
+
             c1.set_assembly_time(self.env.now)
             c2.set_assembly_time(self.env.now)
 
@@ -103,7 +109,6 @@ class Workstation2(object):
             self.measurements.add_workstation2_length_times(2, self.env.now)
 
             print("Workstation 2 has started assembling product 2")
-            idle_time_done = self.env.now
             service_time = self.st.get_random_w2_st()
             yield self.env.timeout(service_time)
             print("Workstation 2 service time: " + str(service_time) + " minutes")
@@ -158,6 +163,7 @@ class Workstation3(object):
             self.measurements.add_buffer5_comp_time(len(self.buffer5.items), self.env.now)
         
             idle_time = self.env.now
+            self.measurements.add_blocked_time_start('workstation3', idle_time)
             self.measurements.add_workstation3_length_times(0, idle_time)
 
             print("Workstation 3 is waiting for product 1 and 3...")
@@ -178,6 +184,9 @@ class Workstation3(object):
             c1 = yield self.buffer4.get()
             c3 = yield self.buffer5.get()
 
+            idle_time_done = self.env.now
+            self.measurements.add_blocked_time_end('workstation3', idle_time_done)
+
             c1.set_assembly_time(self.env.now)
             c3.set_assembly_time(self.env.now)
 
@@ -190,7 +199,6 @@ class Workstation3(object):
             self.measurements.add_workstation3_length_times(2, self.env.now)
                 
             print("Workstation 3 has started assembling product 3")
-            idle_time_done = self.env.now
             service_time = self.st.get_random_w3_st()
             yield self.env.timeout(service_time)
             print("Workstation 3 service time: " + str(service_time) + " minutes")

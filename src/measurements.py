@@ -146,6 +146,14 @@ class Measurements():
             'workstation3': 0
         }
 
+        self.blocked_times = {
+            'inspector1': [],
+            'inspector2': [],
+            'workstation1':[],
+            'workstation2':[],
+            'workstation3':[]
+        }
+
         #########################
 
     def st_i1(self, st):
@@ -303,6 +311,11 @@ class Measurements():
         self.total_comp_departed_buff_work[key] = amount
 
 
+    def add_blocked_time_start(self, key, time):
+        self.blocked_times[key].append([time, 1])
+
+    def add_blocked_time_end(self, key, time):
+        self.blocked_times[key].append([time, 0])
 
 # --------------------------------------------------------------
 
@@ -436,3 +449,7 @@ class Measurements():
 
     def get_total_comp_departed_buff_work(self):
         return self.total_comp_departed_buff_work
+    
+
+    def get_block_times(self):
+        return self.blocked_times
