@@ -260,7 +260,7 @@ def calculate_confidence_interval_thru(multi_throughput, replications):
     print(format(confidence_interval, ".4f"), sep="\t")
 
     print(f"\nR at {replications} replications:")
-    print(format(r_val, ".f"), sep="\t")  
+    print(format(r_val, ".4f"), sep="\t")  
 
 
 def init_simulation():
@@ -309,15 +309,15 @@ if __name__ == '__main__':
 
     # simulation_duration = input('Please enter a simulation duration: ')
     # seed_input = input('Please enter a seed: ')
-    gen_stats_input = input('Would you like to generate stats for Littles Law? (Y/N) ')
-
-    if gen_stats_input == 'Y':
-        gen_stats = True
 
     run_type = input('Which type of simulation run would you like to simulate? (NORMAL/DURATIONS/REPLICATIONS) ')
 
     if run_type == "NORMAL":
         normal_run = True
+        gen_stats_input = input('Would you like to generate stats for Littles Law? (Y/N) ')
+
+        if gen_stats_input == 'Y':
+            gen_stats = True
     
     if run_type == "DURATIONS":
         mult_durations = True
