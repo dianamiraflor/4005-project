@@ -203,7 +203,7 @@ def calculate_confidence_interval(multi_values, replications):
         t_score=t.ppf(0.975,df=replications-1)
         z_score=z.ppf(0.975)
 
-        confidence_interval[key]=t_score*sqrt(sample_variance[key]/replications)
+        confidence_interval[key]=t_score*(sample_variance[key]/sqrt(replications))
 
         r_val[key]=((z_score**2)*sample_variance[key])/0.2
 
@@ -240,7 +240,7 @@ def calculate_confidence_interval_thru(multi_throughput, replications):
     t_score=t.ppf(0.975,df=replications-1)
     z_score=z.ppf(0.975)
 
-    confidence_interval=t_score*sqrt(sample_variance/replications)
+    confidence_interval=t_score*(sample_variance/sqrt(replications))
 
     r_val=((z_score**2)*sample_variance)/0.2
 
@@ -260,7 +260,7 @@ def calculate_confidence_interval_thru(multi_throughput, replications):
     print(format(confidence_interval, ".4f"), sep="\t")
 
     print(f"\nR at {replications} replications:")
-    print(format(r_val, ".4f"), sep="\t")  
+    print(format(r_val, ".f"), sep="\t")  
 
 
 def init_simulation():
