@@ -203,20 +203,14 @@ class Employee:
 		c1w2=self.facility.containers["c1w2"].level
 		c1w3=self.facility.containers["c1w3"].level
 
-		# Case 1: If all the same
-		if c1w1 == c1w2 == c1w3:
+		if (c1w1<c1w2 and c1w1<c1w3) or (c1w1==c1w2==c1w3==2):
 			return "c1w1"
-
-		# Case 2: First buffer (W1) has the lowest amount
-		if c1w1 <= c1w2 & c1w1 <= c1w3:
-			return "c1w1"
-
-		# Case 3: Second buffer (W2) has the lowest
-		if c1w2 <= c1w3 | c1w2 < c1w1:
+		elif c1w2<c1w3:
 			return "c1w2"
-
-		# Case 4: Third buffer (W3) has the lowest
-		return "c1w3"
+		elif c1w3<c1w2:
+			return "c1w3"
+		else:
+			return random.choice(["c1w2","c1w3"])
 
 def littles_law(duration=30000):
 	env=simpy.Environment()
@@ -372,7 +366,7 @@ if __name__ == '__main__':
 	THE MAIN METHOD.
 	Run facility.py to start simulation.
 	"""
-	# normal(30000)
+	normal(30000)
 	# multiple_durations(100,50,500)
-	multiple_replications(100,30000)
+	# multiple_replications(100,30000)
 	# littles_law()
